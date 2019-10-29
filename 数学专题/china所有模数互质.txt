@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+ll n,l,r;
+
+ll multi(ll m,ll n,ll mod){
+    ll ans=0;
+    while(n){
+        if(n&1){
+            ans+=m;
+            if(ans>=mod)ans-=mod;
+        }
+        m=m+m;
+        if(m>=mod)m-=mod;
+        n>>=1;
+    }return ans;
+}
+
+void exgcd(ll a,ll b,ll &d,ll &x,ll &y){
+    if(b==0){d=a;x=1;y=0;return;}
+    exgcd(b,a%b,d,y,x);
+    y-=x*(a/b);
+}
+
+ll p[20],a[20];
+
+ll china(int val){
+    int cnt=0;
+    ll M=1,m,ret=0,x,y,d,L,R;
+    for(int i=0;i<=n;i++){
+        if(val&(1<<i)||i==n){
+            cnt++;
+            M*=p[i];
+        }
+    }
+    for(int i=0;i<=n;i++){
+        if(val&(1<<i)||i==n){
+            m=M/p[i];
+            exgcd(m,p[i],d,x,y);
+            x = (x+M)%M;
+            ret = (ret + multi(multi(m,x,M),a[i],M)%M)%M;
+        }
+    }
+    ret=(ret+M)%M;
+    int sig=-1;
+    if(cnt&1)sig=1;
+    return sig*((r+M-ret)/M - (l-1+M-ret)/M);
+}
+
+ll solve(){
+    ll ans = r/7 - (l-1)/7;
+    for(int i=1;i<(1<<n);i++){
+        ans+=china(i);
+    }
+    return ans;
+}
+
+int main(){
+    int t;cin>>t;
+    int ca=1;
+    while(t--){
+        scanf("%lld%lld%lld",&n,&l,&r);
+        p[n]=7;a[n]=0;
+        for(int i=0;i<n;i++){
+            scanf("%lld%lld",&p[i],&a[i]);
+        }
+        printf("Case #%d: %lld\n",ca++,solve());
+    }
+    return 0;
+}

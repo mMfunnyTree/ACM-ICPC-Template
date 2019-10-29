@@ -1,0 +1,58 @@
+/************************hashtable*****************************/
+const int maxsize = 100007;/**如果内存允许并且单样例，随便开，否则maxc/10 ~ maxc*/
+const int maxc = 5000*5000;/**要大于最大状态个数*/
+struct e{
+    int nxt,val,cnt;
+    ull to;
+};
+struct hash_table_for_map_ull_int{
+    int cnt=0;
+    int head[maxsize];
+    e edge[maxc+10];
+    int h(ull x){
+        return abs(((x)^(x<<1)^(x>>1))%maxsize);
+    }
+    void add(int id,ull val,int num){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                edge[i].cnt+=num;return;
+            }
+        }
+        edge[++cnt].to=val;
+        edge[cnt].cnt=num;
+        edge[cnt].nxt=head[id];
+        head[id]=cnt;
+    }
+    void set(int id,ull val,int num){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                edge[i].cnt=num;return;
+            }
+        }
+        edge[++cnt].to=val;
+        edge[cnt].cnt=num;
+        edge[cnt].nxt=head[id];
+        head[id]=cnt;
+    }
+    int query(int id,ull val){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                return edge[i].cnt;
+            }
+        }return 0;
+    }
+    void init(){
+        cnt=0;
+        memset(head,0,sizeof head);
+    }
+};
+hash_table_for_map_ull_int mp;
+
+/************************hashtable*****************************/
+
+ull base = 131;
+ull po[100105],hs[100005];
+
+ull geth(int l,int r){
+    return (ull)hs[r]-po[r-l+1]*hs[l-1];
+}

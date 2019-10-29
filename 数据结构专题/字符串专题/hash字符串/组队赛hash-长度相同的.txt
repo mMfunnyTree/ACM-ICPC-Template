@@ -1,0 +1,58 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int maxn = 100010;
+typedef unsigned long long ull;
+char s[maxn];
+ull nbase [maxn];
+ull hs[maxn];
+ull h[maxn];
+ull seed = 31;
+
+int main()
+{
+    int n, m;
+    nbase[1] = seed;
+    for(int i = 2; i <= maxn; ++i)
+    {
+        nbase[i] = nbase[i-1]*seed;
+    }
+    while(scanf("%d%d", &n, &m) == 2)
+    {
+        scanf("%s", s+1);
+        int len = strlen(s+1);
+        hs[len+1] = 0;
+        for(int i = len; i > 0; --i)
+        {
+            hs[i] = hs[i+1]*seed+s[i]-'a';
+        }
+        for(int i = 1; i+m-1 <= len; ++i)
+        {
+            h[i] = hs[i]-hs[i+m]*nbase[m];
+        }
+        int ans = 0;
+        for(int i = 1; i <= m && i+n*m-1 <= len; ++i)
+        {
+            map<ull, int> mp;
+            for(int j = 0; j < n; ++j)
+            {
+                ull th = h[i+j*m];
+                mp[th]++;
+            }
+            if(mp.size() == n)
+                ans++;
+            for(int j = n; i+((j+1)*m)-1 <= len; ++j)
+            {
+                ull th = h[i+(j-n)*m];
+                mp[th]--;
+                if(!mp[th]) mp.erase(th);  
+                th = h[i+j*m];
+                mp[th]++;
+                if(mp.size() == n)
+                    ans++;
+            }
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

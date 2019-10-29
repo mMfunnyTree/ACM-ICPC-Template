@@ -1,0 +1,47 @@
+public static BigInteger gcd(BigInteger a,BigInteger b){
+        if(b.equals(BigInteger.ZERO))return a;
+        return gcd(b,a.mod(b));
+    }
+    public  static BigInteger[] ex_gcd(BigInteger a,BigInteger b){  
+        BigInteger ans;
+        BigInteger[] result=new BigInteger[3];  
+        if(b.equals(BigInteger.ZERO))  {  
+            result[0]=a;  
+            result[1]=BigInteger.ONE;  
+            result[2]=BigInteger.ZERO;  
+            return result;  
+        }  
+        BigInteger [] temp=ex_gcd(b,a.mod(b));  
+        ans = temp[0];  
+        result[0]=ans;  
+        result[1]=temp[2];  
+        result[2]=temp[1].subtract((a.divide(b)).multiply(temp[2]));  
+        return result;  
+    }
+    public static BigInteger inv(BigInteger t,BigInteger p){
+        BigInteger d,x,y;
+        BigInteger [] temp=ex_gcd(t,p);
+        d = temp[0];
+        x = temp[1];
+        y = temp[2];
+        if(d.equals(BigInteger.ONE)){
+            return (x.mod(p).add(p)).mod(p);
+        }return BigInteger.valueOf(-1);
+    }
+public static BigInteger linear(BigInteger A[],BigInteger B[],BigInteger M[],int n){
+        BigInteger x=BigInteger.ZERO;
+        BigInteger m=BigInteger.ONE;
+        for(int i=0;i<n;++i){
+            BigInteger a=A[i].multiply(m),b=B[i].subtract(A[i].multiply(x));
+            BigInteger d=gcd(M[i],a);
+            
+            if((b.mod(d)) .equals(BigInteger.ZERO)==false ){
+                return BigInteger.valueOf(-1);
+            }
+            BigInteger t=b.divide(d).multiply(inv(a.divide(d),M[i].divide(d)).mod(M[i].divide(d)));
+            x=x.add(m.multiply(t));
+            m = m.multiply(M[i].divide(d));
+        }
+        x = (x.mod(m).add(m)).mod(m);
+        return x;
+    }

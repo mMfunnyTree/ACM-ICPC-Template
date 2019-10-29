@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+#define dlson l,mid,lson[nrt]
+#define drson mid+1,r,rson[nrt]
+
+const int maxn = 2e5+10;
+int n,m;
+int T[maxn],tot,lson[maxn<<5],rson[maxn<<5];
+ll c[maxn<<5],cur[maxn<<5];
+void push_up(int rt){
+    c[rt]=c[lson[rt]]+c[rson[rt]];
+}
+void build(int l,int r,int &nrt){
+    nrt=tot++;cur[nrt]=0;
+    if(l==r){
+        scanf("%lld",c+nrt);return;
+    }int mid=l+r>>1;
+    build(dlson);build(drson);push_up(nrt);
+}
+void update(int L,int R,ll val,int l,int r,int &nrt,int rt){
+    nrt=tot++;
+    lson[nrt]=lson[rt];
+    rson[nrt]=rson[rt];
+    c[nrt]=c[rt]+(R-L+1)*val;
+    cur[nrt]=cur[rt];
+    if(L==l&&R==r){
+        cur[nrt]+=val;return;
+    }
+    int mid=l+r>>1;
+    if(R<=mid)update(L,R,val,dlson,lson[rt]);
+    else if(L>mid)update(L,R,val,drson,rson[rt]);
+    else update(L,mid,val,dlson,lson[rt]),update(mid+1,R,val,drson,rson[rt]);
+}
+ll query(int L,int R,int l,int r,int nrt,ll add){
+    if(L==l&&R==r)return c[nrt]+(R-L+1)*add;
+    int mid=l+r>>1;
+    if(R<=mid)return query(L,R,dlson,add+cur[nrt]);
+    else if(L>mid)return query(L,R,drson,add+cur[nrt]);
+    return query(L,mid,dlson,add+cur[nrt])+query(mid+1,R,drson,add+cur[nrt]);
+}
+int main(){
+    while(scanf("%d%d",&n,&m)!=EOF){
+    tot=0;
+    build(1,n,T[0]);
+    int time=0;
+    char op[2];
+    int l,r,d,t;
+    for(int i=1;i<=m;i++){
+        scanf("%s",op);
+        if(op[0]=='C'){
+            scanf("%d%d%d",&l,&r,&d);
+            update(l,r,d,1,n,T[time+1],T[time]);time++;
+        }
+        else if(op[0]=='Q'){
+            scanf("%d%d",&l,&r);
+            printf("%lld\n",query(l,r,1,n,T[time],0));
+        }
+        else if(op[0]=='H'){
+            scanf("%d%d%d",&l,&r,&t);
+            printf("%lld\n",query(l,r,1,n,T[t],0));
+        }
+        else{
+            scanf("%d",&t);
+            tot=T[t+1];
+            time=t;
+        }
+    }
+    }
+    return 0;
+}

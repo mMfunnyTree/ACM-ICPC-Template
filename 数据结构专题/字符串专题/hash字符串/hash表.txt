@@ -1,0 +1,42 @@
+ #include<bits/stdc++.h>
+using namespace std;
+int v,vv;
+const int maxsize = 19260817;
+const int maxn = 1e9+7;
+const int maxc = 1e7;
+
+struct e{
+    int to,nxt,val,cnt;
+}edge[maxc+10];
+int cnt=0;
+int head[maxsize];
+
+int h(int x){
+    return abs(((x)^(x<<v)^(x>>vv))%maxsize);
+}
+
+void Insert(int id,int val){
+    for(int i=head[id];i!=0;i=edge[i].nxt){
+        if(edge[i].to==val){
+            edge[i].cnt++;return;
+        }
+    }
+    edge[++cnt].to=val;
+    edge[cnt].cnt=1;
+    edge[cnt].nxt=head[id];
+    head[id]=cnt;
+}
+
+int main() {
+    //double bg = clock();
+    srand(time(NULL));
+    v=(rand()%15+rand()%15)%15+1;
+    vv=(rand()%17+rand()%17)%17+1;
+    for(int i=1;i<=1e8;i++){
+        int x=rand()*rand()%maxn*rand()%maxn;
+        Insert(h(x),x);
+    }
+    //double ed = clock();
+    //cout<<(ed-bg)/CLOCKS_PER_SEC;
+    return 0;
+}

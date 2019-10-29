@@ -1,0 +1,72 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef unsigned long long ull;
+
+unordered_map<ull,int> mp;
+
+int n,m;
+char s[100005],t[5005];
+int lens,lent;
+
+ull base = 131;
+ull po[100105],hs[100005];
+
+ull geth(int l,int r){
+    return (ull)hs[r]-po[r-l+1]*hs[l-1];
+}
+
+int main(){
+    po[0]=1;
+    for(int i=1;i<=100000;i++){
+        po[i]=po[i-1]*base;
+    }
+
+    int T;cin>>T;
+    while(T--){
+        mp.clear();
+        scanf("%d%d",&n,&m);
+        scanf("%s%s",s+1,t+1);
+        lens=strlen(s+1);lent=strlen(t+1);
+
+        ull tt=0;
+        for(int i=1;i<=lent;i++)
+            tt=tt*base+(ull)t[i];
+
+        for(int i=1;i<=lens;i++){
+            hs[i]=hs[i-1]*base+s[i];
+        }
+
+        for(int i=1;i<=lens-lent+1;i++){
+            ull ss = geth(i,i+lent-1);
+            if(tt==ss){
+                printf("1");continue;
+            }
+            if(mp.find(ss)!=mp.end()){
+                if(mp[ss]==1)printf("1");
+                else printf("0");
+                continue;
+            }
+            bool ok=1;
+            for(int j=1;j<=lent;j++){
+                if(s[i+j-1]==t[j])continue;
+                if(j==lent){
+                    ok=0;break;
+                }
+                if(t[j]==s[i+j] && t[j+1]==s[i+j-1]){
+                    j++;
+                }
+                else {
+                    ok=0;break;
+                }
+            }
+            if(ok){
+                printf("1");mp[ss]=1;
+            } else {
+                printf("0");mp[ss]=-1;
+            }
+        }
+        for(int i=lens-lent+1;i<lens;i++)printf("0");
+        printf("\n");
+    }
+    return 0;
+}

@@ -1,0 +1,99 @@
+（2）下面开始我们最简单的OpenMPI语句，hello world!
+
+    #include "stdafx.h"  
+    #include <omp.h>  
+    #include <iostream>  
+    using namespace std;  
+    int main()  
+    {  
+        #pragma omp parallel num_threads(8)  
+        cout<<"hello world! "<<"thread numbers: "<<omp_get_thread_num()<<endl;  
+    }  
+    其中#pragma omp parallel是一句编译指导语句，告诉编译器后面的语句需要并行处理.num_threads(8)给出线程数为8，可以不给出线程数，一般会有一个默认值，我的机子上是2.
+
+
+（3）OpenMP的循环并行化
+
+最基础和典型的并行部分应该就是循环，我们先从循环的并行开始
+
+ 
+    #include "stdafx.h"  
+    #include <omp.h>  
+    #include <iostream>  
+    #include <time.h>  
+    using namespace std;  
+      
+    const int core   = 2;  
+    const int thread = 4;  
+      
+    void test()  
+    {  
+        int sum = 0;      
+        for(int i=0; i<10000000; ++i)  
+        {   sum *= i;   }  
+    }  
+      
+    int main()  
+    {  
+        clock_t start = clock();  
+          
+            #pragma omp parallel for  
+            for(int i=0; i<core; i++)  
+            {   test();             }  
+              
+          
+        clock_t finish = clock();  
+        cout<<"time used is: "<<finish -start<<"ms"<<endl;  
+      
+        start = clock();  
+      
+            for(int i=0; i<core; i++)  
+            {   test(); }  
+      
+        finish = clock();  
+        cout<<"time used is: "<<finish -start<<"ms"<<endl;  
+    }  
+
+这段代码中添加了运行时间测试语句，是为了比较并行处理的效果，并行指导语句只有一句#pragma omp parallel for，其作用就是将for循环的内部迭代使用多个线程处理。第二个循环是非并行的参照组，在我的机子上这两段代码的时间分别是35ms,65ms左右。
+
+
+
+（4）OpenMP的一般语句并行化
+
+ #pragma omp parallel  
+        {     
+            /*并行区域1*/  
+            #pragma omp sections  
+            {  
+                #pragma omp section  
+                {   cout<<"hello ->thread:"<<omp_get_thread_num()<<endl;   }  
+                #pragma omp section  
+                {   cout<<"hello ->thread:"<<omp_get_thread_num()<<endl;   }  
+            }  
+      
+            /*并行区域2*/  
+            #pragma omp sections  
+            {  
+                #pragma omp section  
+                {   cout<<"world ->thread:"<<omp_get_thread_num()<<endl;   }  
+                #pragma omp section  
+                {   cout<<"world ->thread:"<<omp_get_thread_num()<<endl;   }  
+            }  
+        };  
+    使用#pragma omp parallel{ 语句 }的形式给出总的并行块，sections划分出并行分区，区域内部的section之间多线程并行处理，sections之间串行处理，如上述程序中，并行区域1先处理，并行区域2后处理；而并行区域1中的显示hello的两个section并行处理，并行区域2中显示world的两个section并行处理。
+（5）OpenMP的并行调度算法
+
+OpenMPI 的调度算法一共有三个：static , dynamic, guided. 另外有一个根据环境变量选择三者之一的runtime选项。使用方法也十分简单：
+
+    sum =0;  
+    #pragma omp parallel for schedule(dynamic)  
+    for(int i=0; i<100; ++i)  
+    {   sum +=i;    }  
+    cout<<sum<<endl;  
+
+我们选择了 schedule(dynamic) ,同理有 schedule(static) 和 schedule(guided) ，另外你如果不给出schedule，那么默认选择的是static选项。三者的区别如下：
+static       : 每个线程分配  迭代总数 / 线程数 的迭代次数，如9500次迭代，10个线程，那么每个线程被分配950次迭代。任务分配可能不均衡。因为每次迭代的时间可能不同。
+
+dynamic : 每次线程完成了当前工作就重新申请新的工作，开销比static大，但能基本保证任务分配的均衡。
+
+guided   :  程序员可以给出分配公式，指导任务的分配。

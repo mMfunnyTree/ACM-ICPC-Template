@@ -1,0 +1,1059 @@
+1. CDQ分治处理线段覆盖问题
+
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 1e5+10;
+struct Node{
+    int idx,l,r,delt;
+    int kind;
+    bool operator < (const Node &rhs)const{
+        return l<rhs.l;
+    }
+}node[maxn];
+
+int ans[maxn],del[maxn];
+/*******反向BIT*******/
+inline int lowbit(int x){return x&(-x);}
+int arr[maxn],MAX;
+void add(int x,int d){
+    while(x){
+        arr[x]+=d;
+        x-=lowbit(x);
+    }
+}
+int sum(int x){
+    int ret=0;
+    while(x<=MAX){
+        ret+=arr[x];
+        x+=lowbit(x);
+    }return ret;
+}
+/****离散化****/
+int vec[maxn],vec_idx;
+int hs(int x){
+    return lower_bound(vec,vec+vec_idx,x)-vec+1;
+}
+/*****CDQ*****/
+void cdq(int l,int r){
+    if(l==r)return;
+    int mid = (l+r)>>1;
+    cdq(l,mid);
+    cdq(mid+1,r);
+    int j=l;
+    for(int i=mid+1;i<=r;i++){
+        if(node[i].kind==2){
+            for(;j<=mid && node[j].l<=node[i].l;j++){
+                if(node[j].kind==1){
+                    add(hs(node[j].r),node[j].delt);
+                }
+            }
+            ans[node[i].idx]+=sum(hs(node[i].r));
+        }
+    }
+    for(int i=l;i<j;i++){
+        if(node[i].kind==1){
+            add(hs(node[i].r),-node[i].delt);
+        }
+    }
+    inplace_merge(node+l,node+mid+1,node+r+1);
+}
+int vis[maxn];
+int main(){
+    int n,m;
+    while(scanf("%d%d",&m,&n)!=EOF){
+        int cnt=0;
+        vec_idx=0;
+        memset(arr,0,sizeof(arr));
+        memset(ans,0,sizeof(ans));
+        memset(vis,0,sizeof(vis));
+        vector<int> v;
+        char op[3];
+        for(int i=1;i<=n;i++){
+            scanf("%s",op);
+            if(op[0]=='1'){
+                scanf("%d%d",&node[i].l,&node[i].r);
+                node[i].kind=1;
+                node[i].idx=i;
+                node[i].delt=1;
+                vec[vec_idx++]=node[i].r;
+                v.push_back(i);
+            } else if(op[0]=='2'){
+                scanf("%d%d",&node[i].l,&node[i].r);
+                node[i].kind=2;
+                node[i].idx=i;
+                vec[vec_idx++]=node[i].r;
+                vis[i]=1;
+            } else{
+                int tmp;
+                scanf("%d",&tmp);
+                node[i].kind=1;
+                node[i].l=node[v[tmp-1]].l;
+                node[i].r=node[v[tmp-1]].r;
+                node[i].delt=-1;
+                node[i].idx=i;
+            }
+        }
+        sort(vec,vec+vec_idx);
+        MAX = vec_idx+10;
+        cdq(1,n);
+        for(int i=1;i<=n;i++){
+            if(vis[i]){
+                printf("%d\n",ans[i]);
+            }
+        }
+    }
+    return 0;
+}
+
+2.cdq分治动态求长方体内点的数量
+
+/*
+1 x y z 添加一个点
+2 x1 y1 z1 x2 y2 z2 查找长方体内点的数量
+CDQ分治套CDQ分治套树状数组
+第一重CDQ分治计算左边的修改对右边的询问的影响，
+第二重CDQ分治处理三维偏序问题
+*/
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+#define N 50010
+struct rec{
+    int k,x,y,z,w,id;
+    rec(){}
+    rec(int k,int x,int y,int z,int w,int id):
+        k(k),x(x),y(y),z(z),w(w),id(id){}
+    bool operator==(const rec &a)
+    {
+        return x==a.x&&y==a.y&&z==a.z;
+    }
+}q[N*8],qq[N*8],tmp[N*8];
+int ans[N],tree[N*2],a[N*2],b[N*2],c[N*2],kind[N];
+int n,ta,tb,tc;
+bool cmp1(rec &a,rec &b)
+{
+    if(a==b) return a.id<b.id;
+    return a.x<b.x||a.x==b.x&&a.y<b.y||a.x==b.x&&a.y==b.y&&a.z<b.z;
+}
+bool cmp2(rec &a,rec &b)
+{
+    return a.y<b.y;
+}
+inline void add(int x,int w)
+{
+    for(;x<=tc;x+=x&-x) tree[x]+=w;
+}
+inline int getsum(int x)
+{
+    int ans=0;
+    for(;x;x-=x&-x) ans+=tree[x];
+    return ans;
+}
+void cdq(int l,int r)
+{
+    if(l==r) return;
+    int mid=l+r>>1;
+    for(int i=l;i<=r;++i) tmp[i]=qq[i];
+    sort(qq+l,qq+mid+1,cmp2);
+    sort(qq+mid+1,qq+r+1,cmp2);
+    int ll=l;
+    for(int i=mid+1;i<=r;++i)
+    {
+        while(ll<=mid&&qq[ll].y<=qq[i].y)
+        {
+            if(qq[ll].k==1) add(qq[ll].z,1);
+            ++ll;
+        }
+        if(qq[i].k==2) ans[qq[i].id]+=getsum(qq[i].z)*qq[i].w;
+    }
+    for(int i=l;i<ll;++i)
+        if(qq[i].k==1) add(qq[i].z,-1);
+    for(int i=l;i<=r;++i) qq[i]=tmp[i];
+    cdq(l,mid);cdq(mid+1,r);
+}
+void solve(int l,int r)
+{
+    if(l==r) return;
+    int mid=l+r>>1,n=0;
+    for(int i=l;i<=mid;++i)
+        if(q[i].k==1) qq[++n]=q[i];
+    for(int i=mid+1;i<=r;++i)
+        if(q[i].k==2) qq[++n]=q[i];
+    if(n)
+    {
+        sort(qq+1,qq+n+1,cmp1);
+        cdq(1,n);
+    }
+    solve(l,mid);solve(mid+1,r);
+}
+int main()
+{
+    int ca;
+    scanf("%d",&ca);
+    while(ca--)
+    {
+        scanf("%d",&n);
+        int nn=0,k,a1,b1,c1,a2,b2,c2;
+        ta=tb=tc=0;
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d%d%d%d",&k,&a1,&b1,&c1);
+            kind[i]=k;
+            if(k==1)
+            {
+                q[++nn]=rec(k,a1,b1,c1,1,i);
+                c[++tc]=c1;
+            }
+            else
+            {
+                scanf("%d%d%d",&a2,&b2,&c2);
+                --a1;--b1;--c1;
+                c[++tc]=c1;c[++tc]=c2;
+                q[++nn]=rec(k,a2,b2,c2,1,i);
+                q[++nn]=rec(k,a1,b2,c2,-1,i);
+                q[++nn]=rec(k,a2,b1,c2,-1,i);
+                q[++nn]=rec(k,a2,b2,c1,-1,i);
+                q[++nn]=rec(k,a1,b1,c2,1,i);
+                q[++nn]=rec(k,a1,b2,c1,1,i);
+                q[++nn]=rec(k,a2,b1,c1,1,i);
+                q[++nn]=rec(k,a1,b1,c1,-1,i);
+            }
+        }
+        sort(c+1,c+tc+1);tc=unique(c+1,c+tc+1)-c-1;
+        for(int i=1;i<=nn;++i)
+            q[i].z=lower_bound(c+1,c+tc+1,q[i].z)-c;
+        memset(ans,0,sizeof(ans));
+        solve(1,nn);
+        for(int i=1;i<=n;++i)
+            if(kind[i]==2) printf("%d\n",ans[i]);
+    }
+    return 0;
+}
+
+3.CDQ分治三维偏序问题
+/*
+给定N个三维的点，问对于点i，
+有多少个点三个坐标都小于点i(1<=i<=n)
+*/
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+#define N 100010
+struct rec{
+    int x,y,z,id;
+    bool operator==(const rec &a)
+    {
+        return x==a.x&&y==a.y&&z==a.z;
+    }
+}a[N],tmp[N];
+int ans[N],c[N];
+int n;
+bool cmp1(rec &a,rec &b)
+{
+    if(a==b) return a.id<b.id;
+    return a.x<b.x||a.x==b.x&&a.y<b.y||a.x==b.x&&a.y==b.y&&a.z<b.z;
+}
+bool cmp2(rec &a,rec &b)
+{
+    return a.y<b.y||a.y==b.y&&a.id<b.id;
+}
+inline void add(int x,int w)
+{
+    for(;x<=100000;x+=x&-x) c[x]+=w;
+}
+inline int getsum(int x)
+{
+    int ans=0;
+    for(;x;x-=x&-x) ans+=c[x];
+    return ans;
+}
+void solve(int l,int r)
+{
+    if(l==r) return;
+    int mid=l+r>>1;
+    for(int i=l;i<=r;++i) tmp[i]=a[i];
+    sort(a+l,a+mid+1,cmp2);
+    sort(a+mid+1,a+r+1,cmp2);
+    int ll=l;
+    for(int i=mid+1;i<=r;++i)
+    {
+        while(ll<=mid&&a[ll].y<=a[i].y) add(a[ll++].z,1);
+        ans[a[i].id]+=getsum(a[i].z);
+    }
+    for(int i=l;i<ll;++i) add(a[i].z,-1);
+    for(int i=l;i<=r;++i) a[i]=tmp[i];
+    solve(l,mid);solve(mid+1,r);
+}
+int main()
+{
+    int ca;
+    scanf("%d",&ca);
+    while(ca--)
+    {
+        scanf("%d",&n);
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d%d%d",&a[i].x,&a[i].y,&a[i].z);
+            a[i].id=i;
+        }
+        sort(a+1,a+n+1,cmp1);
+        memset(ans,0,sizeof(ans));
+        solve(1,n);
+        for(int i=n-1;i>0;--i)
+            if(a[i]==a[i+1]) ans[a[i].id]=ans[a[i+1].id];
+        for(int i=1;i<=n;++i)
+            printf("%d\n",ans[i]);
+    }
+    return 0;
+}
+
+4.CDQ分治二维偏序常见数据结构优化DP
+#include <bits/stdc++.h>
+using namespace std;
+#define N 100010
+struct rec{
+    int x,y;
+    rec(){}
+    rec(int x,int y):x(x),y(y){}
+}q[N],s,t;
+int n;
+int a[N];
+bool cmp1(rec &a,rec &b)
+{
+    return a.y<b.y||a.y==b.y&&a.x<b.x;
+}
+bool cmp2(rec &a,rec &b)
+{
+    return a.y>b.y||a.y==b.y&&a.x<b.x;
+}
+int solve(int z)
+{
+    int cnt=0;
+    for(int i=1;i<=z;++i)
+    {
+        int x=upper_bound(a+1,a+cnt+1,q[i].x)-a;
+        if(x>cnt) a[++cnt]=q[i].x;
+        else a[x]=q[i].x;
+    }
+    return cnt;
+}
+int main()
+{
+    scanf("%d",&n);
+    scanf("%d%d",&s.x,&s.y);
+    scanf("%d%d",&t.x,&t.y);
+    if(s.x>t.x) swap(s,t);
+    int y1=min(s.y,t.y),y2=max(s.y,t.y);
+    int x,y,z=0;
+    for(int i=1;i<=n;++i)
+    {
+        scanf("%d%d",&x,&y);
+        if(s.x<=x&&x<=t.x&&y1<=y&&y<=y2)
+            q[++z]=rec(x,y);
+    }
+    if(s.y<t.y) sort(q+1,q+z+1,cmp1);
+    else sort(q+1,q+z+1,cmp2);
+    printf("%d\n",solve(z));
+    return 0;
+}
+
+5.整体二分--静态区间第k小
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+#define N 100010
+const int inf=1e9;
+struct rec{
+    int w,id;
+    rec(){}
+    rec(int w,int id):w(w),id(id){}
+    bool operator<(const rec a)const
+    {
+        return w<a.w;
+    }
+}a[N];
+struct interval{
+    int l,r,k,id,cnt;
+}q[N],tmp[N];
+int n,m;
+int c[N],ans[N];
+inline void add(int x,int w)
+{
+    for(;x<=n;x+=x&-x) c[x]+=w;
+}
+inline int getsum(int x)
+{
+    int ans=0;
+    for(;x;x-=x&-x) ans+=c[x];
+    return ans;
+}
+void calc(int s,int t,int l,int r)
+{
+    int x=lower_bound(a+1,a+n+1,rec(l,0))-a;
+    for(int i=x;i<=n&&a[i].w<=r;++i) add(a[i].id,1);
+    for(int i=s;i<=t;++i)
+        q[i].cnt=getsum(q[i].r)-getsum(q[i].l-1);
+    for(int i=x;i<=n&&a[i].w<=r;++i) add(a[i].id,-1);
+}
+void solve(int s,int t,int l,int r)
+{
+    if(l==r)
+    {
+        for(int i=s;i<=t;++i) ans[q[i].id]=l;
+        return;
+    }
+    int mid=l+(r-l>>1);
+    calc(s,t,l,mid);
+    int ss=s-1,tt=t+1;
+    for(int i=s;i<=t;++i)
+    {
+        if(q[i].cnt>=q[i].k) tmp[++ss]=q[i];
+        else q[i].k-=q[i].cnt,tmp[--tt]=q[i];
+    }
+    for(int i=s;i<=t;++i) q[i]=tmp[i];
+    if(ss>=s) solve(s,ss,l,mid);
+    if(tt<=t) solve(tt,t,mid+1,r);
+}
+bool cmp(rec a,rec b)
+{
+    return a.w<b.w;
+}
+int main()
+{
+    while(scanf("%d%d",&n,&m)!=EOF)
+    {
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d",&a[i].w);a[i].id=i;
+        }
+        sort(a+1,a+n+1,cmp);
+        for(int i=1;i<=m;++i)
+        {
+            scanf("%d%d%d",&q[i].l,&q[i].r,&q[i].k);
+            q[i].cnt=0;q[i].id=i;
+        }
+        solve(1,m,-inf,inf);
+        for(int i=1;i<=m;++i) printf("%d\n",ans[i]);
+    }
+    return 0;
+}
+
+
+6.整体二分--动态区间第k小
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+#define N 100010
+struct rec{
+    int x,y,k,cnt,id;
+    rec(){}
+    rec(int x,int y,int k,int cnt,int id):
+        x(x),y(y),k(k),cnt(cnt),id(id){}
+}q[N*3],q1[N*3],q2[N*3];
+const int inf=1e9;
+int a[N],ans[N*3],c[N];
+int n,m,nn;
+inline void add(int x,int w)
+{
+    for(;x<=n;x+=x&-x) c[x]+=w;
+}
+inline int getsum(int x)
+{
+    int ans=0;
+    for(;x;x-=x&-x) ans+=c[x];
+    return ans;
+}
+void calc(int s,int t,int l,int r)
+{
+    for(int i=s;i<=t;++i)
+    {
+        if(q[i].k) q[i].cnt=getsum(q[i].y)-getsum(q[i].x-1);
+        else if(q[i].y<=r) add(q[i].x,q[i].cnt);
+    }
+    for(int i=s;i<=t;++i)
+        if(!q[i].k&&q[i].y<=r) add(q[i].x,-q[i].cnt);
+}
+void solve(int s,int t,int l,int r)
+{
+    if(l==r)
+    {
+        for(int i=s;i<=t;++i)
+            if(q[i].k) ans[q[i].id]=l;
+        return;
+    }
+    int mid=l+(r-l>>1);
+    calc(s,t,l,mid);
+    int t1=0,t2=0;
+    for(int i=s;i<=t;++i)
+    {
+        if(q[i].k)
+        {
+            if(q[i].cnt>=q[i].k) q1[++t1]=q[i];
+            else q[i].k-=q[i].cnt,q2[++t2]=q[i];
+        }
+        else
+        {
+            if(q[i].y<=mid) q1[++t1]=q[i];
+            else q2[++t2]=q[i];
+        }
+    }
+    for(int i=1;i<=t1;++i) q[s+i-1]=q1[i];
+    for(int i=1;i<=t2;++i) q[t-t2+i]=q2[i];
+    if(t1) solve(s,s+t1-1,l,mid);
+    if(t2) solve(s+t1,t,mid+1,r);
+}
+int main()
+{
+    while(scanf("%d",&n)!=EOF)
+    {
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d",&a[i]);
+            q[i]=rec(i,a[i],0,1,i);
+            ans[i]=0;
+        }
+        nn=n;
+        scanf("%d",&m);
+        int x,y,k,z;
+        for(int i=1;i<=m;++i)
+        {
+            scanf("%d%d%d",&z,&x,&y);
+            if(z==1)
+            {
+                ++nn;q[nn]=rec(x,a[x],0,-1,nn);
+                ++nn;q[nn]=rec(x,y,0,1,nn);
+                a[x]=y;
+                ans[nn]=0;
+            }
+            else
+            {
+                scanf("%d",&k);
+                ++nn;q[nn]=rec(x,y,k,0,nn);
+            }
+        }
+        memset(ans,0,sizeof(ans));
+        solve(1,nn,1,inf);
+        for(int i=1;i<=nn;++i)
+            if(ans[i]) printf("%d\n",ans[i]);
+    }
+    return 0;
+}
+
+7.树状数组离线求区间不同数字个数
+#include <bits/stdc++.h>
+using namespace std;
+#define lowbit(x) (x&-x)
+#define max(a,b) ((a)>(b)?(a):(b))
+
+const int N=200005, M=200005;
+int bit[N], a[N], n, m, ihead[100005], inext[N];
+struct Q {
+    int l, r, id, ans;
+}q[M];
+bool cmp1(const Q &a, const Q &b) { return a.l==b.l?a.r<b.r:a.l<b.l; }
+bool cmp2(const Q &a, const Q &b) { return a.id<b.id; }
+
+inline int read() {
+    int ret=0; char c;
+    for(c=getchar(); c<'0' || c>'9'; c=getchar());
+    for(; c>='0' && c<='9'; c=getchar()) ret=ret*10+c-'0';
+    return ret;
+}
+inline void add(int x, const int &y) { while(x<=n) bit[x]+=y, x+=lowbit(x); }
+inline int sum(int x) { int ret=0; while(x>0) ret+=bit[x], x-=lowbit(x); return ret; }
+
+int main() {
+    while(scanf("%d%d",&n,&m)!=EOF){
+    memset(bit,0,sizeof bit);
+    memset(ihead,0,sizeof ihead);
+    memset(inext,0,sizeof inext);
+
+    int i, maxi=0, l=1;
+    for(i=1; i<=n; ++i){
+        a[i]=read(), maxi=max(maxi, a[i]);
+        a[i+n]=a[i];
+    }
+    n*=2;
+    for(int i=1;i<=n;i++){
+        maxi=max(maxi,a[i]);
+    }
+    for(i=n; i>=0; --i){
+        inext[i]=ihead[a[i]], ihead[a[i]]=i;
+    }
+    for(i=0; i<=maxi; ++i){
+        if(ihead[i]) add(ihead[i], 1);
+    }
+    for(i=1; i<=m; ++i){
+        q[i].l=read(), q[i].r=read(), q[i].id=i;
+        int tmp=q[i].r;
+        q[i].r=n/2+q[i].l;
+        q[i].l=tmp;
+        //cout<<q[i].l<<" "<<q[i].r<<endl;
+    }
+    sort(q+1, q+1+m, cmp1);
+    for(i=1; i<=m; ++i) {
+        while(l<q[i].l) {
+            if(inext[l]) add(inext[l], 1);
+            ++l;
+        }
+        q[i].ans=sum(q[i].r)-sum(q[i].l-1);
+    }
+    sort(q+1, q+1+m, cmp2);
+    for(i=1; i<=m; ++i) printf("%d\n", q[i].ans);
+}
+return 0;
+}
+
+8.KDtree
+/*
+给定n个点，有m次询问
+1 x y 插入一个节点
+2 x y 询问与这个节点最近的点
+*/
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+#define N 500010
+const int inf=0x3f3f3f3f;
+int D;//当前维
+struct Point{
+    //d[0/1]表示一维/二维坐标
+    //mn[0/1],mx[0/1]表示最小，最大一维/二维坐标
+    //l,r表示左儿子和右儿子
+    int d[2],mn[2],mx[2],l,r;
+    bool operator==(const Point a)const
+    {
+        return d[0]==a.d[0]&&d[1]==a.d[1];
+    }
+    bool operator<(const Point a)const
+    {
+        return d[D]<a.d[D];
+    }
+}p[N];
+struct KDtree{
+    Point t[N*2],P,Q;
+    int rt,cnt,ans;
+    void updata(int k)
+    {
+        int l=t[k].l,r=t[k].r;
+        for(int i=0;i<2;++i)
+        {
+            t[k].mn[i]=t[k].mx[i]=t[k].d[i];
+            if(l) t[k].mn[i]=min(t[k].mn[i],t[l].mn[i]);
+            if(l) t[k].mx[i]=max(t[k].mx[i],t[l].mx[i]);
+            if(r) t[k].mn[i]=min(t[k].mn[i],t[r].mn[i]);
+            if(r) t[k].mx[i]=max(t[k].mx[i],t[r].mx[i]);
+        }
+    }
+    int build(int l,int r,int f)
+    {
+        if(l>r) return 0;
+        int mid=l+r>>1;
+        D=f;nth_element(p+l,p+mid,p+r+1);
+        t[mid]=p[mid];
+        t[mid].l=build(l,mid-1,f^1);
+        t[mid].r=build(mid+1,r,f^1);
+        updata(mid);
+        return mid;
+    }
+    void insert(int &k,int f,Point &now)
+    {
+        if(!k)
+        {
+            k=++cnt;
+            t[k].d[0]=t[k].mn[0]=t[k].mx[0]=now.d[0];
+            t[k].d[1]=t[k].mn[1]=t[k].mx[1]=now.d[1];
+            t[k].l=t[k].r=0;
+        }
+        if(t[k]==now) return;
+        if(now.d[f]<t[k].d[f]) insert(t[k].l,f^1,now);
+        else insert(t[k].r,f^1,now);
+        updata(k);
+    }
+    int dis(Point &Q)
+    {
+        int d=0;
+        for(int i=0;i<2;++i) d+=abs(Q.d[i]-P.d[i]);
+        return d;
+    }
+    int getmn(Point &Q)//估计的最小哈密尔顿距离
+    {
+        int mn=0;
+        for(int i=0;i<2;++i)
+        {
+            mn+=max(0,P.d[i]-Q.mx[i]);
+            mn+=max(0,Q.mn[i]-P.d[i]);
+        }
+        return mn;
+    }
+    int getmx(Point &Q)//估计的最大哈密尔顿距离
+    {
+        int mx=0;
+        for(int i=0;i<2;++i)
+            mx+=max(abs(P.d[i]-Q.mn[i]),abs(P.d[i]-Q.mx[i]));
+        return mx;
+    }
+    void querymn(int k)//查找最小的哈密尔顿距离
+    {
+        //如果查找的点集中包括自己，则不算自己
+        //int tmp=dis(t[k]);
+        //if(tmp) ans=min(ans,tmp);
+        ans=min(ans,dis(t[k]));
+        int l=t[k].l,r=t[k].r,dl=inf,dr=inf;
+        if(l) dl=getmn(t[l]);
+        if(r) dr=getmn(t[r]);
+        if(dl<dr)
+        {
+            if(dl<ans) querymn(l);
+            if(dr<ans) querymn(r);
+        }
+        else
+        {
+            if(dr<ans) querymn(r);
+            if(dl<ans) querymn(l);
+        }
+    }
+    void querymx(int k)//查找最大的哈密尔顿距离
+    {
+        ans=max(ans,dis(t[k]));
+        int l=t[k].l,r=t[k].r,dl=-inf,dr=-inf;
+        if(l) dl=getmx(t[l]);
+        if(r) dr=getmx(t[r]);
+        if(dl>dr)
+        {
+            if(dl>ans) querymx(l);
+            if(dr>ans) querymx(r);
+        }
+        else
+        {
+            if(dr>ans) querymx(r);
+            if(dl>ans) querymx(l);
+        }
+    }
+    /*
+    f=0为查找最大,f=1为查找最小
+    */
+    int query(int f,int x,int y)
+    {
+        P.d[0]=x;P.d[1]=y;
+        if(f==0) {ans=inf;querymn(rt);}
+        else {ans=-inf;querymx(rt);}
+        return ans;
+    }
+    /*
+    当插入的节点太多时，可能导致树不平衡，此时重建
+    */
+    int rebuild(int l,int r,int f)
+    {
+        if(l>r) return 0;
+        int mid=l+r>>1;
+        D=f;nth_element(t+l,t+mid,t+r+1);
+        t[mid].l=rebuild(l,mid-1,f^1);
+        t[mid].r=rebuild(mid+1,r,f^1);
+        updata(mid);
+        return mid;
+    }
+}T;
+int n,m;
+int read()
+{
+    int x=0;char ch=getchar();
+    while(ch<'0'||ch>'9') ch=getchar();
+    while('0'<=ch&&ch<='9'){x=x*10+ch-'0';ch=getchar();}
+    return x;
+}
+int main()
+{
+    //freopen("BZOJ2716.in","r",stdin);
+    n=read();m=read();
+    for(int i=1;i<=n;++i){p[i].d[0]=read();p[i].d[1]=read();}
+    T.rt=T.build(1,n,0);T.cnt=n;
+    int t,z=n+50000;Point tmp;
+    for(int i=1;i<=m;++i)
+    {
+        t=read();tmp.d[0]=read();tmp.d[1]=read();
+        if(t==1)
+        {
+            T.insert(T.rt,0,tmp);
+            if(T.cnt==z){T.rt=T.rebuild(1,T.cnt,0);n+=50000;}
+        }
+        else printf("%d\n",T.query(0,tmp.d[0],tmp.d[1]));
+    }
+    return 0;
+}
+
+9.树分治treedp计数
+/*
+给定一棵n个节点的树，树上的权值要么为0，要么为1，
+如果一条路径上的0和1数量相同且路径上存在一个点（称为休息点）（非路径的端点），
+在这个点的左边路径上0和1的数量相等，右边路径上的0和1的数量也相等，
+则称这条路径符合条件，问符合条件的路有多少条。
+解：先把树上的权值0变成-1，
+在计数的时候，运用treedp的思想，
+在当前根中，
+la[x][0/1]表示当前根中以前访问的子树到根的路径权值为x的没有/有休息点的节点数量
+g[x][0/1]表示当前根中现在访问的节点的子树到根的路径权值为x的没有/有休息点的节点数量
+点的编号为1~n
+*/
+#include<iostream>
+#include<stdio.h>
+#include<algorithm>
+#include<string.h>
+#include<vector>
+#define N 100010
+typedef long long ll;
+using namespace std;
+struct node{
+    int x,y;
+    node(int xx,int yy)
+    {
+        x=xx,y=yy;
+    }
+};
+vector<node> lin[N];
+vector<int> d;
+int sz[N],f[N];//sz[x]-->x的树大小，f[x]-->x最大子树的节点数；
+int n;
+int rt;
+int vis[N],dis[N],g[N*2][2],la[N*2][2],s[N*2];
+ll ans,sum;
+int size;
+int aa,bb,cc,md;
+void getrt(int x,int fa)//利用*sz,*f求重心
+{
+    sz[x]=1;
+    f[x]=0;
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]||u==fa) continue;
+        getrt(u,x);
+        sz[x]+=sz[u];
+        f[x]=max(sz[u],f[x]);
+    }
+    f[x]=max(f[x],size-sz[x]);//!  x最大子树的节点数=max(与此子树大小－f[x],f[x])
+    if(f[x]<f[rt]) rt=x;
+}
+void getdis(int x,int fa)//一遍dfs求距离＋求重心的一点预处理sz[x],求子树大小size
+{
+    sz[x]=1;
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]||u==fa) continue;
+        getdis(u,x);
+        sz[x]+=sz[u];
+    }
+}
+void dfs(int x,int fa,int w)//求出g[][]
+{
+    //printf("%d %d ",x,w);
+    md=max(md,max(w,-w));
+    if(s[w+N]) ++g[w+N][1];
+    else ++g[w+N][0];
+    //printf("%d %d !!\n",g[w+N][0],g[w+N][1]);
+    ++s[w+N];
+    int y;
+    for(int i=0;i<lin[x].size();++i)
+    {
+        y=lin[x][i].x;
+        if(vis[y]||y==fa) continue;
+        dfs(y,x,w+lin[x][i].y);
+    }
+    --s[w+N];
+}
+ll cal(int x)
+{
+    //printf("%d ----------\n",x);
+    int y;
+    ll tmp=0;
+    int mdd=0;
+    for(int i=0;i<lin[x].size();++i)
+    {
+        y=lin[x][i].x;
+        if(vis[y]) continue;
+        md=0;
+        dfs(y,x,lin[x][i].y);
+        mdd=max(mdd,md);
+        tmp+=g[N][1]+(ll)g[N][0]*la[N][0];
+        for(int j=-md;j<=md;++j)
+        {
+            tmp+=(ll)g[N-j][0]*la[N+j][1]+(ll)g[N-j][1]*la[N+j][0]+(ll)g[N-j][1]*la[N+j][1];
+            //printf("%d %d %d %d %d %d ??\n",y,j,g[N+j][0],g[N+j][1],la[N+j][0],la[N+j][1]);
+        }
+        for(int j=N-md;j<=N+md;++j)
+        {
+            la[j][1]+=g[j][1];
+            la[j][0]+=g[j][0];
+            g[j][1]=g[j][0]=0;
+        }
+    }
+    for(int i=N-mdd;i<=N+mdd;++i)
+        la[i][0]=la[i][1]=0;
+    //printf("%d ?\n",tmp);
+    return tmp;
+}
+void solve(int x)
+{
+    ans+=cal(x);
+    vis[x]=1;
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]) continue;
+        getdis(u,0);
+        size=sz[u];//!!! getdis中已经处理子树的全大小
+        getrt(u,rt=0);
+        solve(rt);
+    }
+}
+int main()
+{
+    while(scanf("%d",&n)!=EOF)
+    {
+        for(int i=1;i<=n;i++)
+        {
+            vis[i]=0;
+            lin[i].clear();
+        }
+        for(int i=1;i<n;i++)
+        {
+            scanf("%d%d%d",&aa,&bb,&cc);
+            if(cc==0) cc=-1;
+            lin[aa].push_back(node(bb,cc));
+            lin[bb].push_back(node(aa,cc));
+        }
+        ans=0;
+        f[0]=n+1;size=n;
+        getrt(1,rt=0);
+        solve(rt);
+        printf("%lld\n",ans);
+    }
+}
+
+
+10.树分治计数
+/*
+求树上距离小于K的点对的数量，
+对于一个节点，先算出以它为根的子树的符合条件的点对的数量
+再减去以它儿子为根的子树的符合条件的点对的数量，
+求点对数量时用双指针
+点的编号为1~n
+*/
+#include<iostream>
+#include<stdio.h>
+#include<algorithm>
+#include<string.h>
+#include<vector>
+#define N 10005
+using namespace std;
+struct node{
+    int x,y;
+    node(int xx,int yy)
+    {
+        x=xx,y=yy;
+    }
+};
+vector<node> lin[N];
+vector<int> d;
+int sz[N],f[N];//sz[x]-->x的树大小，f[x]-->x最大子树的节点数；
+int n;
+int rt;
+int vis[N],dis[N];
+int K;
+int ans,size;
+int aa,bb,cc;
+void getrt(int x,int fa)//利用*sz,*f求重心
+{
+    sz[x]=1;
+    f[x]=0;
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]||u==fa) continue;
+        getrt(u,x);
+        sz[x]+=sz[u];
+        f[x]=max(sz[u],f[x]);
+    }
+    f[x]=max(f[x],size-sz[x]);//!  x最大子树的节点数=max(与此子树大小－f[x],f[x])
+    if(f[x]<f[rt]) rt=x; 
+}
+void getdis(int x,int fa)//一遍dfs求距离＋求重心的一点预处理sz[x],求子树大小size
+{
+    sz[x]=1;
+    d.push_back(dis[x]);
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]||u==fa) continue;     
+        dis[u]=dis[x]+lin[x][i].y;
+        getdis(u,x);
+        sz[x]+=sz[u];       
+    }
+}
+int cal(int x,int y)
+{   
+    int ret=0;
+    d.clear();
+    dis[x]=y;
+    getdis(x,0);
+
+    sort(d.begin(),d.end());
+    int l=0;
+    int r=d.size()-1;
+    while(l<r)
+    {
+        while(d[l]+d[r]>K&l<r) r--;
+        ret+=r-l;
+        l++;    
+    }
+    return ret;
+}
+void solve(int x)
+{
+    //cout<<x<<endl;
+    ans+=cal(x,0);
+    vis[x]=1;
+    for(int i=0;i<lin[x].size();i++)
+    {
+        int u=lin[x][i].x;
+        if(vis[u]) continue;
+        ans-=cal(u,lin[x][i].y);
+        f[0]=size=sz[u];//!!! getdis中已经处理子树的全大小
+        getrt(u,rt=0);
+        solve(rt);
+    }
+
+}
+int main()
+{
+    while(scanf("%d%d",&n,&K))
+    {
+        if(!n&&!K) return 0;
+        for(int i=1;i<=n;i++)
+        {
+            vis[i]=0;
+            lin[i].clear();
+        }
+        for(int i=1;i<n;i++)
+        {
+            scanf("%d%d%d",&aa,&bb,&cc);
+            lin[aa].push_back(node(bb,cc));
+            lin[bb].push_back(node(aa,cc)); 
+        }   
+        ans=0;
+        f[0]=size=n;
+        getrt(1,rt=0);  
+        solve(rt);
+        printf("%d\n",ans);
+    }
+}

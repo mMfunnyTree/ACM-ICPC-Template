@@ -1,0 +1,152 @@
+#include <stdio.h>
+#include <algorithm>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+
+using namespace std;
+
+typedef long long LL;
+
+const int N = 500010;
+const int INF = 1e8;
+
+struct line//线段树节点
+{
+    int l, r;//左右端点
+    int lp, rp;//判断左右端点是否存在，存在为1，不存在未0
+    int cnt, len;//cnt代表是否被覆盖，0代表未被完全覆盖，1代表被完全覆盖
+    int num;//记录区间内的线段数目
+}tree[4*N];
+
+struct node//保存线段
+{
+    int l, r, h;
+    int f;
+    bool operator < (const struct node & tmp) const
+    {
+        return h < tmp.h;
+    }
+}seg[4*N];
+
+int x[N];
+
+void build(int i, int l, int r)
+{
+    tree[i].l = l;
+    tree[i].r = r;
+    tree[i].len = tree[i].cnt = tree[i].num = 0;
+    tree[i].lp = tree[i].rp = 0;
+    if(l == r)
+    {
+        return;
+    }
+    int mid = (l+r) >> 1;
+    build(i*2, l, mid);
+    build(i*2+1, mid+1, r);
+}
+
+int binsearch(int key, int k)
+{
+    int high = k;
+    int low = 1;
+    while(high >= low)
+    {
+        int mid = (high+low) >> 1;
+        if(x[mid] == key)
+        {
+            return mid;
+        }
+        else if(x[mid] < key)
+        {
+            low = mid+1;
+        }
+        else high = mid-1;
+    }
+    return -1;
+}
+
+void maintain(int i)
+{
+    if(tree[i].cnt)
+    {
+        tree[i].len = x[tree[i].r+1]-x[tree[i].l];
+        tree[i].lp = tree[i].rp = tree[i].num = 1;
+        return;
+    }
+    if(tree[i].l == tree[i].r)
+    {
+        tree[i].len = tree[i].lp = tree[i].rp = tree[i].num = 0;
+        return;
+    }
+    tree[i].len = tree[i*2].len+tree[i*2+1].len;
+    tree[i].lp = tree[i*2].lp;
+    tree[i].rp = tree[i*2+1].rp;
+    tree[i].num = (tree[i*2].num+tree[i*2+1].num-(tree[i*2].rp&&tree[i*2+1].lp));
+}
+
+
+void update(int i, int l, int r, int f)
+{
+    if(tree[i].l == l && tree[i].r == r)
+    {
+        tree[i].cnt += f;
+        maintain(i);
+        return;
+    }
+    int mid = (tree[i].l+tree[i].r) >> 1;
+    if(mid >= r)
+        update(i*2, l, r, f);
+    else if(mid < l)
+        update(i*2+1, l, r, f);
+    else
+    {
+        update(i*2, l, mid, f);
+        update(i*2+1, mid+1, r, f);
+    }
+    maintain(i);
+}
+
+int main()
+{
+   // freopen("in.txt", "r", stdin);
+    int n, x1, y1, x2, y2;
+    while(~scanf("%d", &n))
+    {
+        int num = 1;
+        for(int i = 1; i <= n; i++)
+        {
+            scanf("%d%d%d%d", &x1, &y1, &x2, &y2);
+            seg[num] = (struct node){x1, x2, y1, 1};
+            x[num++] = x1;
+
+            seg[num] = (struct node){x1, x2, y2, -1};
+            x[num++] = x2;
+        }
+        sort(seg+1, seg+num);
+        sort(x+1, x+num);
+        int k = 1;
+        for(int i = 2; i < num; i++)
+        {
+            if(x[i-1] != x[i])
+            {
+                x[++k] = x[i];
+            }
+        }
+        build(1, 1, k);
+        int ans = 0;
+        int pre = 0;
+        for(int i = 1; i < num; i++)
+        {
+            int l = binsearch(seg[i].l, k);
+            int r = binsearch(seg[i].r, k)-1;
+            update(1, l, r, seg[i].f);
+            int t = abs(tree[1].len-pre);
+            pre = tree[1].len;
+            ans += t;
+            if(i < num-1) ans += (seg[i+1].h-seg[i].h)*2*tree[1].num;
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

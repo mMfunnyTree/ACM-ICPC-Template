@@ -1,0 +1,84 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+#define maxn 50000
+
+int sum[maxn<<2];
+
+void push_up(int rt)
+{
+    sum[rt]=sum[rt<<1] + sum[rt<<1|1];
+}
+
+void build(int l,int r,int rt)
+{
+    if(l==r)
+    {
+        scanf("%d",&sum[rt]);
+        return ;
+    }
+    int mid = (l+r)>>1;
+    build(l,mid,rt<<1);
+    build(mid+1,r,rt<<1|1);
+    push_up(rt);
+}
+
+void update(int p,int add,int l,int r,int rt)
+{
+    if(l==r)
+    {
+        sum[rt]+=add;
+        return ;
+    }
+    int mid = (l+r)>>1;
+    if(p<=mid)
+        update(p,add,l,mid,rt<<1);
+    else update(p,add,mid+1,r,rt<<1|1);
+    push_up(rt);
+}
+
+int query(int ll,int rr,int l, int r,int rt)
+{
+    if(ll<=l&&rr>=r)
+        return sum[rt];
+    int mid = (l+r)>>1;
+    int ret=0;
+    if(ll<=mid) ret += query(ll,rr,l,mid,rt<<1);
+    if(rr>mid) ret += query(ll,rr,mid+1,r,rt<<1|1);
+    return ret;
+}
+
+int main()
+{
+    int t,ca=1;
+    cin>>t;
+    char s[10];
+    while(t--)
+    {
+        int n;
+        scanf("%d",&n);
+        build(1,n,1);
+        printf("Case %d:\n",ca++);
+        while(scanf("%s",s)!=EOF&&s[0]!='E')
+        {
+            int x,y;
+            scanf("%d%d",&x,&y);
+            if(s[0]=='A')
+            {
+                update(x,y,1,n,1);
+            }
+            else if(s[0]=='S')
+            {
+                update(x,-y,1,n,1);
+            }
+            else
+            {
+                int ans = query(x,y,1,n,1);
+                printf("%d\n",ans);
+            }
+        }
+    }
+    return 0;
+}

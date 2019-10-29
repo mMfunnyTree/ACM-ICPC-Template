@@ -1,0 +1,90 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+const int maxn = 1e4+10;
+
+int sum[maxn][maxn<<2];
+char op[10];
+int h;
+double a,l;
+int h1,h2;
+double a1,a2;
+
+void push_up(int rtx,int rty){
+    sum[rtx][rty]=max(sum[rtx][rty<<1],sum[rtx][rty<<1|1]);
+}
+void buildy(int rtx,int l,int r,int rty){
+    sum[rtx][rty]=-1;
+    if(l==r)return;
+    int mid=l+r>>1;
+    buildy(rtx,l,mid,rty<<1);buildy(rtx,mid+1,r,rty<<1|1);
+}
+void build(int l,int r,int rtx){
+    buildy(rtx,0,1000,1);
+    int mid=l+r>>1;
+    if(l!=r){
+        build(l,mid,rtx<<1);build(mid+1,r,rtx<<1|1);
+    }
+}
+void updatey(int rtx,int p,int v,int l,int r,int rty){
+    if(l==r){
+        sum[rtx][rty]=max(sum[rtx][rty],v);
+        return;
+    }
+    int mid=l+r>>1;
+    if(p<=mid)updatey(rtx,p,v,l,mid,rty<<1);
+    else      updatey(rtx,p,v,mid+1,r,rty<<1|1);
+    push_up(rtx,rty);
+}
+void update(int x,int y,int v,int l,int r,int rtx){
+    updatey(rtx,y,v,0,1000,1);
+    if(l!=r){
+        int mid=l+r>>1;
+        if(x<=mid)update(x,y,v,l,mid,rtx<<1);
+        else      update(x,y,v,mid+1,r,rtx<<1|1);
+    }
+}
+int queryy(int rtx,int L,int R,int l,int r,int rty){
+    if(L<=l&&R>=r){
+            return sum[rtx][rty];
+    }
+    int mid=l+r>>1;
+    int res=-1;
+    if(L<=mid)res=max(res,queryy(rtx,L,R,l,mid,rty<<1));
+    if(R>mid)res=max(res,queryy(rtx,L,R,mid+1,r,rty<<1|1));
+    return res;
+}
+int query(int Lx,int Rx,int Ly,int Ry,int l,int r,int rtx){
+    if(Lx<=l&&Rx>=r)return queryy(rtx,Ly,Ry,0,1000,1);
+    int mid=l+r>>1;
+    int res=-1;
+    if(Lx<=mid)res=max(res,query(Lx,Rx,Ly,Ry,l,mid,rtx<<1));
+    if(Rx>mid)res=max(res,query(Lx,Rx,Ly,Ry,mid+1,r,rtx<<1|1));
+    return res;
+
+}
+int main(){
+    int m;
+    while(scanf("%d",&m)!=EOF,m){
+        while(m--){
+            build(100,200,1);
+            scanf("%s",op);
+            if(op[0]=='I'){
+                scanf("%d%lf%lf",&h,&a,&l);
+                update(h,a*10,l*10,100,200,1);
+            }
+            else{
+                scanf("%d%d%lf%lf",&h1,&h2,&a1,&a2);
+                if(h1>h2)swap(h1,h2);
+                if(a1>a2)swap(a1,a2);
+                int ans=query(h1,h2,a1*10,a2*10,100,200,1);
+                if(ans==-1)puts("-1");
+                else printf("%.1f\n",0.1*ans);
+            }
+        }
+    }
+    return 0;
+}

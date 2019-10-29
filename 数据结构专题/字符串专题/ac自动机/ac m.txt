@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int maxn = 1e6+10;
+
+char t[151][80];
+int cnt[151];
+char s[maxn];
+int n;
+struct trie{
+    int nxt[maxn][26],fail[maxn];
+    int ed[maxn];
+    int rt,L;
+    int newnode(){
+        memset(nxt[L],-1,sizeof nxt[L]);
+        ed[L++]=0;
+        return L-1;
+    }
+    void init(){
+        L=0;rt=newnode();
+    }
+    void insert(int id,char buf[]){
+        int len=strlen(buf);
+        int now=rt;
+        for(int i=0;i<len;++i){
+            if(nxt[now][buf[i]-'a']==-1)nxt[now][buf[i]-'a']=newnode();
+            now=nxt[now][buf[i]-'a'];
+        }ed[now]=id;
+    }
+    void build(){
+        queue<int>q;
+        fail[rt]=rt;
+        for(int i=0;i<26;++i){
+            if(nxt[rt][i]==-1)nxt[rt][i]=rt;
+            else {
+                fail[nxt[rt][i]]=rt;
+                q.push(nxt[rt][i]);
+            }
+        }
+        while(!q.empty()){
+            int now = q.front();q.pop();
+            for(int i=0;i<26;++i){
+                if(nxt[now][i]==-1)nxt[now][i]=nxt[fail[now]][i];
+                else{
+                    fail[nxt[now][i]]=nxt[fail[now]][i];
+                    q.push(nxt[now][i]);
+                }
+            }
+        }
+    }
+    void query(char buf[]){
+        int len=strlen(buf);
+        int now = rt;
+        for(int i=0;i<len;++i){
+            now = nxt[now][buf[i]-'a'];
+            int tmp=now;
+            while(tmp!=rt){
+                cnt[ed[tmp]]++;
+                tmp=fail[tmp];
+            }
+        }
+        int maxv=0,idx=0;
+        for(int i=1;i<=n;++i){
+            if(cnt[i]>maxv){
+                maxv=cnt[i];idx=i;
+            }
+        }
+        printf("%d\n",maxv);
+        for(int i=1;i<=n;++i)
+        if(cnt[i]==maxv){
+            printf("%s\n",t[i]);
+        }
+    }
+}ac;
+
+int main(){
+    while(cin>>n&&n){
+        ac.init();
+        memset(cnt,0,sizeof cnt);
+        for(int i=1;i<=n;++i){
+            scanf("%s",t[i]);
+            ac.insert(i,t[i]);
+        }ac.build();
+        scanf("%s",s);
+        ac.query(s);
+    }
+    return 0;
+}

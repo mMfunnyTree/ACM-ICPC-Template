@@ -1,0 +1,101 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define maxn 40005
+struct node
+{
+    int son;
+    int dis;
+};
+
+int n;
+vector<node> v[maxn];
+
+int deep[maxn];         //每个点的深度
+int visnum[2*maxn];     //遍历数是2*n-1
+int visn[maxn];         //每个点的任意一个遍历数
+int vnum=1;
+
+int mins[maxn*2][18];   //区间最小值
+int dist[maxn];         //距离祖先的距离
+int f[maxn];            //并查集里的父亲
+
+void visit(int m,int d,int dis)//遍历重编号，计算dis
+{
+    vector<node>::iterator p;
+    deep[m]=d;
+    dist[m]=dis;
+    for(p=v[m].begin();p!=v[m].end();p++)
+    {
+        visn[m]=vnum;
+        visnum[vnum++]=m;//访问的第vnum个点是哪个点
+        visit((*p).son,d+1,dis+(*p).dis);
+    }
+    visn[m]=vnum;
+    visnum[vnum++]=m;
+}
+
+void rmq()//计算区间最小值
+{
+    for(int i=1;i<=2*n-1;i++)
+        mins[i][0]=visnum[i];
+    for(int j=1;(1<<j)<=2*n-1;j++)
+    {
+        for(int i=1;i<=2*n-1;i++)
+        {
+            mins[i][j]=mins[i][j-1];
+            int k = i + (1<<(j-1));
+            if(k<=2*n-1 && deep[mins[i][j]]>deep[mins[k][j-1]])
+                mins[i][j]=mins[k][j-1];
+        }
+    }
+}
+
+int lca(int x,int y)
+{
+    int j=0;
+    while((1<<j)<=y-x)j++;
+    j--;
+    int min=mins[y+1-(1<<j)][j];
+    if(deep[min]>deep[mins[x][j]])
+        min = mins[x][j];
+    return min;
+}
+
+int main()
+{
+    int t,m,x,y,l;
+    node nod;
+    cin>>t;
+    while(t--)
+    {
+        cin>>n>>m;
+        for(int i=1;i<=n;i++)//初始化
+        {
+            v[i].clear();
+            f[i]=i;
+        }
+        for(int i=1;i<n;i++)
+        {
+            scanf("%d%d%d",&x,&y,&l);
+            nod.dis=l;
+            nod.son=y;
+            v[x].push_back(nod);
+            f[y]=x;
+        }
+        while(f[x]!=x)//找到整棵树的根节点
+            x=f[x];
+        visit(x,1,0);//从根节点开始访问
+        rmq();
+        while(m--)
+        {
+            scanf("%d%d",&x,&y);
+            int llca;
+            if(visn[x]<=visn[y])
+                llca=lca(visn[x],visn[y]);
+            else
+                llca=lca(visn[y],visn[x]);
+            printf("%d\n",dist[x]+dist[y]-dist[llca]*2);
+        }
+    }
+    return 0;
+}

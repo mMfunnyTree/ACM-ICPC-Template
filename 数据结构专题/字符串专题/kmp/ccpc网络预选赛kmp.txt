@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int maxn = 1000006;
+const int mod  = 1e9+7;
+#define ll long long
+int f[maxn];
+
+char s[maxn],t[maxn];
+
+void getf()
+{
+    int i,j;
+    f[0]=f[1]=0;
+    int len = strlen(s);
+    for(i=1;i<len;i++)
+    {
+        j=f[i];
+        while(j && s[i]!=s[j])
+            j=f[j];
+        f[i+1] = (s[i]==s[j])?j+1:0;
+    }
+}
+
+ll kmp()
+{
+    ll ret=0;
+    ll i=0,j=0;
+    int len = strlen(t);
+    int len2 = strlen(s);
+    for(i=0;i<len;i++)
+    {
+        while(j && t[i]!=s[j])
+        {
+            ret += (j*(j+1))/2;
+            ret%=mod;
+            j=f[j];
+        }
+
+        if(t[i]==s[j])
+            j++;
+        if(j==len2)
+        {
+            ret += (j*(j+1))/2;
+            ret%=mod;
+            j=f[j];
+        }
+    }
+    while(j)
+    {
+        ret += (j*(j+1))/2;
+        ret%=mod;
+        j=f[j];
+    }
+    return ret;
+}
+
+int main()
+{
+    int T;
+    scanf("%d",&T);
+    while(T--)
+    {
+        scanf("%s %s",t,s);
+        reverse(t,t+strlen(t));
+        reverse(s,s+strlen(s));
+        getf();
+        printf("%lld\n",kmp());
+    }
+    return 0;
+}

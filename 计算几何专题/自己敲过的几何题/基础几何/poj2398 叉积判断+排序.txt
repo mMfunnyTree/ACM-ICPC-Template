@@ -1,0 +1,56 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+typedef long long ll;
+const double eps = 1e-8;
+const int maxn = 1e3+5;
+
+struct point{
+    int x,y;
+    point(int x=0,int y=0):x(x),y(y){}
+    friend bool operator < (point a,point b){
+        return a.x<b.x;
+    }
+};
+
+int cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+int main(){
+    int n,m;
+    point p1,p2;
+    point p;
+    point line[maxn];
+    int ans[maxn]={0};
+    int cnt[maxn]={0};
+    while(scanf("%d",&n)&&n){
+        scanf("%d%d%d%d%d",&m,&p1.x,&p1.y,&p2.x,&p2.y);
+        for(int i=0;i<n;i++){
+            scanf("%d%d",&line[i].x,&line[i].y);
+        }
+        line[n]=point(p2.x,p2.x);
+        sort(line,line+n+1);
+        memset(ans,0,sizeof ans);
+        memset(cnt,0,sizeof cnt);
+        while(m--){
+            scanf("%d%d",&p.x,&p.y);
+            for(int i=0;i<=n;i++){
+                if(cross(point(line[i].x,p1.y),point(line[i].y,p2.y),p)<0){
+                    cnt[i]++;break;
+                }
+            }
+        }
+        for(int i=0;i<=n;i++){
+            ans[cnt[i]]++;
+        }
+        puts("Box");
+        for(int i=1;i<=n;i++){
+            if(ans[i]){
+                printf("%d: %d\n",i,ans[i]);
+            }
+        }
+    }
+    return 0;
+}

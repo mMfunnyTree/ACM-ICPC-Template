@@ -1,0 +1,14 @@
+#include<ext/pb_ds/priority_queue.hpp>
+typedef __gnu_pbds::priority_queue<node,less<node>,pairing_heap_tag> heap;
+heap::point_iterator hit[M];
+heap pq;
+pb_ds库的push操作是有返回值的（与STL不同），返回的类型就是迭代器，
+这样用一个迭代器数组保存所有push进优先队列的元素的迭代器，就可以随时修改优先队列内部元素了。
+pq.modify(hit[e[i].to],node(e[i].to,d[e[i].to]));
+a.join(b);
+此时优先队列b内所有元素就被合并进优先队列a中，且优先队列b被清空。
+hit[i]=pq.push(i);
+if(hit[i]==0){
+    pq.modify(hit[i],1);
+}
+pq.erase(hit[i]);

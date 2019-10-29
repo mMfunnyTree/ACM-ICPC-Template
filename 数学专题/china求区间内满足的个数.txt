@@ -1,0 +1,57 @@
+#include<cstdio>
+#include<algorithm>
+#include<cstring>
+#include<cmath>
+#define ll long long 
+using namespace std;
+ 
+ll n,m,b[10009],a[10009];
+ll gcd(ll a,ll b)
+{
+	return b? gcd(b,a%b):a;
+}
+void exgcd(ll a,ll b,ll &d,ll &x,ll &y)
+{
+	if (b==0){d=a;x=1;y=0;return ;}
+	exgcd(b,a%b,d,y,x);y-=x*(a/b);
+}
+int main()
+{
+	int T;
+	scanf("%d",&T);
+	for (int kk=1;kk<=T;kk++)
+	{
+		scanf("%lld%lld",&n,&m);
+		bool o=true;
+		ll m1,m2,a1,a2;
+		for (int i=1;i<=m;i++) scanf("%lld",&b[i]);
+		for (int i=1;i<=m;i++) scanf("%lld",&a[i]);
+		a1=a[1];m1=b[1];
+		for (int i=2;i<=m;i++)
+		{
+			ll d,x,y;
+			m2=b[i];a2=a[i];//还是按这样写中国剩余定理吧！
+			exgcd(m1,m2,d,x,y);
+			if ((a2-a1)%d) o=false;
+			x*=(a2-a1)/d;
+			ll k=m2/d;
+			x=(x%k+k)%k;
+			a1=m1*x+a1;
+			m1=m1/d*m2;
+			a1=(a1%m1+m1)%m1;
+		}
+		if (a1==0)
+		{
+			a1=1;
+			for (int i=1;i<=m;i++) a1=a1/gcd(a1,b[i])*b[i];
+		}//特殊情况，如果余数都是0
+		ll ans=0;
+		ans=n/m1;
+		n=n%m1;
+		if(n>=a1) ans++;//计算答案
+		if (o) printf("%lld\n",ans);else printf("0\n");
+	}
+	return 0;
+}
+//注意b[i]和a[i]都不能为0，不然会石雕
+//适用与b不是两两互质的情况下

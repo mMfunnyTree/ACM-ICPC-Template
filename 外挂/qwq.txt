@@ -1,0 +1,106 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cmath>
+#include<queue>
+#include<vector>
+#include<map>
+#include<string>
+#include<set>
+#define LL long long
+#define MAX(a,b) (a>b?a:b)
+#define MIN(a,b) (a<b?a:b)
+#define INF 100000000
+#define LNF ((1LL<<62)-1)
+#define maxn 400010
+
+using namespace std;
+
+
+inline char nc(){
+    static char buf[100000],*p1=buf,*p2=buf;
+    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
+}
+template<class T>
+inline void read(T &sum){
+    char ch=nc();sum=0;
+    while(!(ch>='0'&&ch<='9'))ch=nc();
+    while(ch>='0'&&ch<='9')sum=sum*10+ch-48,ch=nc();
+}
+
+int n,m,vis[maxn],head[maxn],tot;
+int d[maxn];
+
+struct Node //记录边的信息
+{
+    int v,c,next;
+}edge[maxn];
+
+void Addedge(int u, int v, int c) //将与u相连通的串在一起，可以用vector
+{
+    edge[tot].v = v;
+    edge[tot].c = c;
+    edge[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void init()
+{
+    memset(head,-1,sizeof(head));
+    tot = 0;
+}
+
+int dij()
+{
+    priority_queue< pair<int,int> >q;  //队列记录花费的时间以及当前边的编号
+    memset(vis,0,sizeof(vis));
+
+    for(int i = 0; i<tot; i++)
+        d[i] = INF;
+
+    for(int i = head[1]; i!=-1; i = edge[i].next)  //初始化，顶点1作为u的边入队
+    {
+        d[i] = 1;
+        q.push(make_pair(-d[i],i));  //因为优先队列从大到小排，所以要加个负号，使其从小到大排列
+    }
+
+    while(!q.empty())
+    {
+        pair<LL,int>tmp = q.top();
+        q.pop();
+        int now = tmp.second;  //取边的编号
+        vis[now] = 1;
+
+        int u = edge[now].v;
+        if(u==n) return d[now];  //如果当前边的v为顶点n，则找到最短路径
+
+        for(int i = head[u]; i!=-1; i = edge[i].next)  //松弛
+        {
+            int v = edge[i].v;
+            if(!vis[i] && d[i]>d[now]+(edge[i].c!=edge[now].c))  //abs（***）为转站花费的时间，如果相同，即为0
+            {
+                d[i] = d[now]+(edge[i].c!=edge[now].c);
+                q.push(make_pair(-d[i],i));
+            }
+        }
+    }
+}
+
+int main()
+{
+    int u,v,c,t;
+    while(scanf("%d%d",&n,&m)!=EOF)
+    {
+        init();
+        for(int i = 0; i<m; i++)
+        {
+            read(u);read(v);read(c);
+            Addedge(u,v,c);
+            Addedge(v,u,c);
+        }
+        int ans=dij();
+        if(ans==INF) ans=-1;
+        printf("%d\n",ans);
+    }
+}

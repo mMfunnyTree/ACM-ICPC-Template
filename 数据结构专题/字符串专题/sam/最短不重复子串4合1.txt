@@ -1,0 +1,127 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int inf  = 0x3f3f3f3f;
+const int maxn = 4e3+10;
+char a[maxn],b[maxn];
+int lena,lenb;
+
+struct SEM{
+    int nxt[maxn][26];
+    int len;
+    inline void init(char *s,int l){
+        len=l;
+        for(int i=0;i<26;i++)nxt[len][i]=len;
+        for(int i=len-1;i>=0;i--){
+            memcpy(nxt[i],nxt[i+1],sizeof nxt[i+1]);
+            nxt[i][s[i]-'a']=i;
+        }
+    }
+}AA,BB;
+
+struct SAM{
+    int pa[maxn<<1],son[maxn<<1][27];
+    int deep[maxn<<1],cnt,root,last;
+    inline int newnode(int _deep){
+        deep[++cnt]=_deep;
+        return cnt;
+    }
+    inline void sam(int alp){
+        int np=newnode(deep[last]+1);
+        int u=last;
+        memset(son[np],0,sizeof son[np]);
+        while(u&&!son[u][alp])son[u][alp]=np,u=pa[u];
+        if(!u)pa[np]=root;
+        else{
+            int v=son[u][alp];
+            if(deep[v]==deep[u]+1)pa[np]=v;
+            else{
+                int nv=newnode(deep[u]+1);
+                memcpy(son[nv],son[v],sizeof son[v]);
+                pa[nv]=pa[v],pa[v]=pa[np]=nv;
+                while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+            }
+        }last=np;
+    }
+    inline void pre(){
+        cnt=0;
+        memset(son[1],0,sizeof son[1]);
+        root=last=newnode(0);
+    }
+}A,B;
+
+
+int solve1(){
+    int ret=inf;
+    for(int i=0;i<lena;i++){
+        int pos=B.root;
+        for(int j=i;j<lena;j++){
+            if(B.son[pos][a[j]-'a'])pos=B.son[pos][a[j]-'a'];
+            else{
+                ret=min(ret,j-i+1);break;
+            }
+        }
+    }return ret==inf?-1:ret;
+}
+
+int solve2(){
+    int ret=inf;
+    for(int i=0;i<lena;i++){
+        int pos=0;
+        for(int j=i;j<lena;j++){
+            if(BB.nxt[pos][a[j]-'a']==BB.len){
+                ret=min(ret,j-i+1);break;
+            } else pos=BB.nxt[pos][a[j]-'a']+1;
+        }
+    }return ret==inf?-1:ret;
+}
+
+int solve3(){
+    int ret=inf;
+    int dp[maxn];//dp[i]表示状态i能够接受的最短A的子序列
+    memset(dp,0x3f,sizeof dp);
+    dp[1]=0;
+    for(int i=0;i<lena;i++){
+        for(int j=B.root;j<=B.cnt;j++){
+            if(B.son[j][a[i]-'a']){
+                dp[B.son[j][a[i]-'a']]=min(dp[B.son[j][a[i]-'a']],dp[j]+1);
+            } else ret=min(ret,dp[j]+1);
+        }
+    }return ret==inf?-1:ret;
+}
+struct node{
+    int a,b,step;
+    node(int a=0,int b=0,int step=0):a(a),b(b),step(step){}
+};
+bool vis[maxn][maxn]={0};
+int solve4(){
+    queue<node> q;
+    q.push(node(0,0,0));
+    while(!q.empty()){
+        node now=q.front();q.pop();
+        //cout<<now.a<<" "<<now.b<<" "<<now.step<<endl;
+        for(int i=0;i<26;i++){
+            if(AA.nxt[now.a][i]==AA.len)continue;
+            if(vis[AA.nxt[now.a][i]][BB.nxt[now.b][i]])continue;
+            if(BB.nxt[now.b][i]==BB.len)return now.step+1;
+            vis[AA.nxt[now.a][i]][BB.nxt[now.b][i]]=1;
+            q.push(node(AA.nxt[now.a][i]+1,BB.nxt[now.b][i]+1,now.step+1));
+        }
+    }return -1;
+}
+
+int main(){
+    scanf("%s%s",a,b);
+    lena=strlen(a);
+    lenb=strlen(b);
+    A.pre();B.pre();
+    for(int i=0;i<lena;i++)A.sam(a[i]-'a');
+    for(int i=0;i<lenb;i++)B.sam(b[i]-'a');
+    AA.init(a,lena);BB.init(b,lenb);
+    printf("%d\n",solve1());
+    printf("%d\n",solve2());
+    printf("%d\n",solve3());
+    printf("%d\n",solve4());
+    return 0;
+}

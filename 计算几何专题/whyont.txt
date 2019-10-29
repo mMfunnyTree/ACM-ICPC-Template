@@ -1,0 +1,168 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const double eps = 1e-8;
+const double pi  = acos(-1.0);
+
+int sgn(double x){
+    return (x>eps) - (x<-eps);
+}
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+    friend bool operator == (point a,point b){
+        return sgn(a.x-b.x)==0 && sgn(a.y-b.y)==0;
+    }
+    friend point operator - (point a,point b){
+        return point(a.x-b.x,a.y-b.y);
+    }
+    friend double det(point a,point b){
+        return a.x*b.y - a.y*b.x;
+    }
+    friend double dot(point a,point b){
+        return a.x*b.x + a.y*b.y;
+    }
+};
+
+int n;
+point tri[10];
+char mp[30][30],mmp[30][30];
+int vis[30][30],fx[][2]={-1,-1,-1,0,-1,1,0,1,0,-1,1,-1,1,0,1,1};
+struct line{
+    point s,t;
+    line(point s=point(),point t=point()):s(s),t(t){}
+    bool ispointonline(const point &p) const{
+        return sgn(det(p-s,t-s)==0);
+    }
+    bool ispointonseg(const point &p) const{
+        return ispointonline(p)&&sgn(dot(p-s,t-s)<=0);
+    }
+};
+
+bool px(line l1,line l2){
+    point a = l1.s,b=l1.t,c=l2.s,d=l2.t;
+    if((d.y-c.y)*(b.x-a.x) == (b.y-a.y)*(d.x-c.x) &&
+       (c.y-a.y)*(b.x-a.x) == (b.y-a.y)*(c.x-c.x) )return 1;
+    return 0;
+}
+
+int pointin(point t){
+    int num=0;
+    for(int i=0;i<3;i++){
+        if(line(tri[i],tri[i+1]).ispointonseg(t))return 2;
+        int k = sgn(det(tri[i+1]-tri[i],t-tri[i]));
+        int d1 = sgn(tri[i].y-t.y);
+        int d2 = sgn(tri[i+1].y-t.y);
+        if(k>0 && d1<=0 && d2>0)num++;
+        if(k<0 && d2<=0 && d1>0)num--;
+    }
+    return num!=0;
+}
+
+double cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+bool iscross(point p1,point p2,point p3,point p4){
+    if(min(p1.x,p2.x)>max(p3.x,p4.x)||
+        min(p3.x,p4.x)>max(p1.x,p2.x)||
+        min(p1.y,p2.y)>max(p3.y,p4.y)||
+        min(p3.y,p4.y)>max(p1.y,p2.y))return 0;
+	double r1=cross(p1,p2,p3);
+	double r2=cross(p1,p2,p4);
+	double r3=cross(p3,p4,p1);
+	double r4=cross(p3,p4,p2);
+	if(sgn(r1*r2)<=0&&sgn(r3*r4)<=0)return 1;
+	return 0;
+}
+
+point cross_point(point p1,point p2,point p3,point p4){
+    double a1=p1.y-p2.y;
+	double b1=p2.x-p1.x;
+	double c1=p1.x*p2.y-p2.x*p1.y;
+	double a2=p3.y-p4.y;
+	double b2=p4.x-p3.x;
+	double c2=p3.x*p4.y-p4.x*p3.y;
+	double x=(b1*c2-b2*c1)/(a1*b2-a2*b1);
+	double y=(c1*a2-c2*a1)/(a1*b2-a2*b1);
+	return point(x,y);
+}
+
+bool checkok(point p1,point p2){
+    if(pointin(p1)==1 || pointin(p2)==1){
+        return 0;
+    }
+    for(int i=0;i<=2;i++)
+        if(px(line(p1,p2),line(tri[i],tri[i+1])))return 1;
+    point q[10];
+    int cnt=0;
+
+    for(int i=0;i<=2;i++){
+        if(iscross(p1,p2,tri[i],tri[i+1])){
+            q[++cnt] = cross_point(p1,p2,tri[i],tri[i+1]);
+        }
+    }
+    if(!cnt)return 1;
+    if(cnt==1)return 1;
+    if(cnt==2){
+        if(q[1]==q[2])return 1;
+        return 0;
+    }
+}
+struct node{
+    int x,y,step;
+    node(int x=0,int y=0,int step=0):x(x),y(y),step(step){}
+};
+bool inrange(int x,int y){
+    if(y<0||x>=n) return 0;
+    if(x<0||y>=n) return 0;
+    return 1;
+}
+int bfs(){
+    memset(vis,0,sizeof(vis));
+    queue<node> q;
+    q.push(node(0,0,0));
+    vis[0][0]=1;
+    while(!q.empty()){
+        node u=q.front();
+        //cout<<u.x<<" "<<u.y<<" "<<u.step<<endl;
+        q.pop();
+        if(u.x==n-1&&u.y==n-1) return u.step;
+        for(int i=0;i<8;i++){
+            int xx=u.x+fx[i][0],yy=u.y+fx[i][1];
+            //if(xx==2&&yy==2) cout<<u.x<<" "<<u.y<<" "<<inrange(xx,yy)<<(mp[xx][yy]=='.')<<checkok(point(u.x,u.y),point(xx,yy))<<endl;
+            if(inrange(xx,yy)&&mp[xx][yy]=='.'&&!vis[xx][yy]){
+                if(checkok(point(u.x,u.y),point(xx,yy))){
+                    q.push(node(xx,yy,u.step+1));
+                    vis[xx][yy]=1;
+                }
+            }
+        }
+    }
+    return -1;
+}
+int main(){
+   // freopen("gg.in","r",stdin);
+//    tri[0]=point(0.2,3);
+//    tri[1]=point(0.8,3);
+//    tri[2]=point(0.5,0);
+//    tri[3]=tri[0];
+    while(scanf("%d",&n)!=EOF){
+        for(int i=0;i<3;i++){
+            scanf("%lf%lf",&tri[i].x,&tri[i].y);
+        }
+        tri[3]=tri[0];
+        for(int i=0;i<n;i++){
+            scanf("%s",mmp[i]);
+        }
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                mp[j][n-i-1] = mmp[i][j];
+            }
+        }
+        printf("%d\n",bfs());
+    }
+    return 0;
+}
+

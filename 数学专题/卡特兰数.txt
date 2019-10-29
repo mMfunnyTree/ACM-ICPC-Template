@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define maxn 1000
+
+int num[111][maxn];//存放100个ktl数
+
+void doit()
+{
+    num[0][1]=1;
+    for(int i=1;i<=100;i++)
+    {
+        for(int j=1;j<maxn-10;j++)//先乘
+        {
+            num[i][j] += num[i-1][j]*(4*i-2);//这个地方以前还乘了个i 值有所变化
+            num[i][j+1] += num[i][j] / maxn;
+            num[i][j] %= maxn;
+        }
+
+        for(int j=maxn-10,div=0;j>0;j--)//后除
+        {
+            div = num[i][j]%(i+1);
+            num[i][j-1] += div*maxn;
+            num[i][j] /= (i+1);
+        }
+    }
+}
+
+void out(int n)
+{
+    int i=maxn-1;
+    while(num[n][i]==0)i--;
+    printf("%d",num[n][i--]);
+    while(i)
+    {
+        printf("%03d",num[n][i--]);
+    }
+    printf("\n");
+}
+
+int main()
+{
+    doit();
+    int n;
+    while(scanf("%d",&n)!=EOF&&n)
+    {
+        out(n);
+    }
+    return 0;
+}

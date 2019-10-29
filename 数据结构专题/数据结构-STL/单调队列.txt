@@ -1,0 +1,59 @@
+题目：Sliding Window
+题意：窗长为k，总长为n，滑动时更新最小值和最大值并输出
+
+单调队列
+
+int a[maxn];//存放数据
+int q[maxn];//队列
+int p[maxn];//储存数据 a[i] 的下标 i
+int n,k;
+int omin[maxn];
+int omax[maxn];
+
+void get_min()
+{
+    int i , head = 1, t = 0;
+
+    for( i=0 ;i<k-1;i++)//先把可留的宽度用到只剩1
+    {
+        while(head<=t && q[t]>=a[i])//队尾元素大于要插入的值
+            t--;
+        q[++t]=a[i];
+        p[t]=i;
+    }
+
+    for( ;i<n;i++)
+    {
+        while(head<=t && q[t]>=a[i])//队尾元素大于要插入的值
+            t--;
+        q[++t]=a[i];
+        p[t]=i;
+        while(p[head] < i-k+1)
+            head++;
+        omin[i-k+1]=q[head];
+    }
+}
+
+void get_max()
+{
+    int i , head = 1, t = 0;
+
+    for( i=0 ;i<k-1;i++)//先把可留的宽度用到只剩1
+    {
+        while(head<=t && q[t]<=a[i])//队尾元素小于要插入的值
+            t--;
+        q[++t]=a[i];
+        p[t]=i;
+    }
+
+    for( ;i<n;i++)
+    {
+        while(head<=t && q[t]<=a[i])//队尾元素小于要插入的值
+            t--;
+        q[++t]=a[i];
+        p[t]=i;
+        while(p[head] < i-k+1)
+            head++;
+        omax[i-k+1]=q[head];
+    }
+}

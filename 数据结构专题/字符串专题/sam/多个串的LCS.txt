@@ -1,0 +1,82 @@
+SAM 的状态要多维护两个信息：
+lcs，当多个串的最长公共子串的最后一个字符落在该状态上的长度；
+nlcs，当前串的最长公共子串的最后一个字符落在该状态上的长度。
+我们对每个串的匹配之后，要对每个状态的 lcs 进行维护，
+显然 lcs=min(lcs, nlcs)，而我们最后所求的就是所有状态中 lcs 的最大值。
+匹配的过程与上一题相同，但是在匹配过程中，
+到达状态 p 时得到的 nlcs 未必就是该状态能表示的最长公共子串长，
+因为如果一个子串出现了n次，那么子串的所有后缀也至少出现了n次。
+因此在每个串匹配之后求要按照拓扑序的逆序维护每个状态的 nlcs，
+使 p->par->nlcs=max(p->nlcs, p->par->nlcs)。
+/**SAM最长公共子串问题**/
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+char s[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+int sum[maxn<<1],topo[maxn<<1];
+int arr[maxn<<1],ned[maxn<<1];
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+inline void toposort(){
+    for(int a=1;a<=cnt;a++)sum[deep[a]]++;
+    for(int a=1;a<=deep[last];a++)sum[a]+=sum[a-1];
+    for(int a=1;a<=cnt;a++)topo[sum[deep[a]]--]=a;
+}
+inline void pre(){
+    root=last=newnode(0);
+}
+int main(){
+    scanf("%s",s);
+    pre();
+    memset(son[1],0,sizeof son[1]);
+    int len=strlen(s);
+    for(int a=0;a<len;a++)sam(s[a]-'a');
+    toposort();
+    for(int a=1;a<=cnt;a++)ned[a]=deep[a];
+    while(scanf("%s",s+1)!=EOF){
+        int m=strlen(s+1);
+        for(int a=1,l=0,p=1;a<=m;a++){
+            int x=s[a]-'a';
+            if(son[p][x])p=son[p][x],l++;
+            else{
+                for(;p && !son[p][x];p=pa[p]);
+                if(!p)l=0,p=1;
+                else l=deep[p]+1,p=son[p][x];
+            }
+            arr[p]=max(arr[p],l);
+        }
+        for(int a=cnt;a>=1;a--){
+            int p=topo[a];
+            ned[p]=min(ned[p],arr[p]);
+            if(arr[p]&&pa[p])arr[pa[p]]=deep[pa[p]];
+            arr[p]=0;
+        }
+    }
+    int ans=0;
+    for(int a=1;a<=cnt;a++)ans=max(ans,ned[a]);
+    printf("%d\n",ans);
+    return 0;
+}

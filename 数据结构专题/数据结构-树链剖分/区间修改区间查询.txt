@@ -1,0 +1,147 @@
+// luogu-judger-enable-o2
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+const int maxn = 1e5+10;
+int n,m,r,mod;
+inline int md(ll x){if(x>=mod)return x%mod;return x;}
+struct edge{int nxt,to;}e[maxn<<1];
+int a[maxn],cnt,head[maxn];
+int fa[maxn],deep[maxn],siz[maxn],son[maxn],rk[maxn],top[maxn],id[maxn];
+void adde(int u,int v){
+    e[++cnt].nxt=head[u];
+    e[cnt].to=v;
+    head[u]=cnt;
+}
+void dfs1(int u,int pre,int dep){
+    fa[u]=pre;deep[u]=dep;siz[u]=1;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==pre)continue;
+        dfs1(v,u,dep+1);
+        siz[u]+=siz[v];
+        if(siz[v]>siz[son[u]])son[u]=v;
+    }
+}
+void dfs2(int u,int t){
+    top[u]=t;id[u]=++cnt;rk[cnt]=u;
+    if(!son[u])return;
+    dfs2(son[u],t);
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v!=son[u]&&v!=fa[u])dfs2(v,v);
+    }
+}
+
+/***************************/
+ll sum[maxn<<2],cur[maxn<<2];
+void push_up(int rt){
+    sum[rt]=md(sum[rt<<1]+sum[rt<<1|1]);
+}
+void push_down(int l,int r,int rt){
+    if(cur[rt]){
+        int mid=l+r>>1;
+        sum[rt<<1]=md(sum[rt<<1]+cur[rt]*(mid-l+1));
+        sum[rt<<1|1]=md(sum[rt<<1|1]+cur[rt]*(r-mid));
+        cur[rt<<1]=md(cur[rt<<1]+cur[rt]);
+        cur[rt<<1|1]=md(cur[rt<<1|1]+cur[rt]);
+        cur[rt]=0;
+    }
+}
+void build(int l,int r,int rt){
+    if(l==r){
+        sum[rt]=md(a[rk[l]]);return;
+    }int mid=l+r>>1;
+    build(lson);build(rson);push_up(rt);
+}
+void update(int L,int R,int v,int l,int r,int rt){
+    if(L<=l&&R>=r){
+        sum[rt]=md(sum[rt]+1ll*v*(r-l+1));
+        cur[rt]=md(cur[rt]+v);
+        return;
+    }
+    int mid=l+r>>1;
+    push_down(l,r,rt);
+    if(L<=mid)update(L,R,v,lson);
+    if(R>mid) update(L,R,v,rson);
+    push_up(rt);
+}
+int query(int L,int R,int l,int r,int rt){
+    if(L<=l&&R>=r)return md(sum[rt]);
+    push_down(l,r,rt);
+    ll ret=0;
+    int mid=l+r>>1;
+    if(L<=mid)ret=md(ret+query(L,R,lson));
+    if(R>mid)ret=md(ret+query(L,R,rson));
+    return ret;
+}
+/***************************/
+int qquery(int x,int y){
+    ll ans=0;
+    while(top[x]!=top[y]){
+        if(deep[top[x]] < deep[top[y]])swap(x,y);
+        ans=md(ans+query(id[top[x]],id[x],1,n,1));
+        x=fa[top[x]];
+    }
+    if(deep[x]>deep[y])swap(x,y);
+    ans = md(ans + query(id[x],id[y],1,n,1));
+    return ans;
+}
+void uupdate(int x,int y,int v){
+    while(top[x]!=top[y]){
+        if(deep[top[x]] < deep[top[y]])swap(x,y);
+        update(id[top[x]],id[x],v,1,n,1);
+        x=fa[top[x]];
+    }
+    if(deep[x]>deep[y])swap(x,y);
+    update(id[x],id[y],v,1,n,1);
+}
+/***************************/
+int main(){
+    scanf("%d%d%d%d",&n,&m,&r,&mod);
+    for(int i=1;i<=n;i++)scanf("%d",a+i);
+    int u,v;
+    int op,x,y,z;
+    for(int i=1;i<n;i++){
+        scanf("%d%d",&u,&v);
+        adde(u,v);adde(v,u);
+    }
+    cnt=0;
+    dfs1(r,0,1);
+    dfs2(r,r);
+    build(1,n,1);
+//
+//    for(int i=1;i<=5;i++){
+//            printf("%d ",query(id[i],id[i],1,n,1));
+//    }cout<<endl;
+//
+
+    while(m--){
+        scanf("%d",&op);
+        if(op==1){
+            scanf("%d%d%d",&x,&y,&z);
+            uupdate(x,y,md(z));
+        }
+        else if(op==2){
+            scanf("%d%d",&x,&y);
+            printf("%d\n",qquery(x,y));
+        }
+        else if(op==3){
+            scanf("%d%d",&x,&z);
+            update(id[x],id[x]+siz[x]-1,md(z),1,n,1);
+        }
+        else{
+            scanf("%d",&x);
+            printf("%d\n",query(id[x],id[x]+siz[x]-1,1,n,1));
+        }
+
+//
+//
+//        for(int i=1;i<=5;i++){
+//            printf("%d ",query(id[i],id[i],1,n,1));
+//        }cout<<endl;
+    }
+    return 0;
+}

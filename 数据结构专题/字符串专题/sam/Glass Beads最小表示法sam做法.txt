@@ -1,0 +1,70 @@
+/**SAM最长公共子串问题**/
+
+
+#include <cstring>
+#include <cstdio>
+#include <iostream>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 4e4+10;
+char s[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+
+inline void pre(){
+    root=last=newnode(0);
+}
+
+int main(){
+   int t;scanf("%d",&t);
+    while(t--){
+        scanf("%s",s);
+        cnt=0;
+        memset(son[1],0,sizeof son[1]);
+        pre();
+        int len=strlen(s);
+        int ans=0;
+        for(int a=0;a<len;a++)sam(s[a]-'a');
+        for(int a=0;a<len;a++)sam(s[a]-'a');
+        for(int a=0,l=0,p=1;a<len;a++){
+            for(int i=0;i<26;i++){
+                if(son[p][i]){
+                    p=son[p][i];break;
+                }
+            }
+            ans = deep[p];
+        }
+        printf("%d\n",ans-len+1);
+    }
+    return 0;
+}
+
+
+理解：直接建sam然后跑长度为len次便可，因为deep[p]表示
+到达状态p后，能够得到的最长的子串长度，那么，
+由于每次都走的是最小的状态转移，得到的最长的子串应该是
+整个串的前缀，所以deep[p]的位置就是长度为len的最小转移的结束位置。

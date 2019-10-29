@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+using namespace std;
+int t[100005][26],tt;/**状态的后继**/
+int v[100005];/**结束点**/
+int father[100005];/**状态的前驱**/
+int fail[100005];/**失配指针**/
+int d[100005];/**答案**/
+vector<int> a[100005];
+void ins(char *s){/**建树**/
+    int p=0;
+    for(;*s;s++){
+        if(t[p][*s-'a']==0){
+            t[p][*s-'a']=++tt;
+            father[tt]=p;
+        }p = t[p][*s-'a'];
+    }v[p]=1;
+}
+
+void buildDfa(){/**建自动机**/
+    queue<int> q;
+    q.push(0);
+    while(!q.empty()){
+        int u = q.front();q.pop();
+        v[u] |= v[fail[u]];
+        for(int i=0;i<26;i++){
+            if(t[u][i]){
+                fail[t[u][i]] = u?t[fail[u]][i]:0;
+                q.push(t[u][i]);
+            } else {
+                t[u][i] = u?t[fail[u]][i]:0;
+            }
+        }
+    }
+    for(int i=0;i<=tt;i++){
+        for(int j=0;j<26;j++){
+            a[t[i][j]].push_back(i);/**哪些状态i能够转移到状态t[i][j]**/
+        }
+    }
+}
+
+void bfs(){
+    queue<int> q;
+    memset(d,0x3f,sizeof d);
+    for(int i=0;i<=tt;i++){
+        if(v[i]){
+            q.push(i);
+            d[i]=0;/**如果该状态可以作为结尾，那么到达该状态后，答案是0**/
+        }
+    }
+    while(!q.empty()){
+        int u = q.front();q.pop();
+        for(int i:a[u]){
+            if(d[i]>d[u]+1){
+                d[i]=d[u]+1;/**最短路松弛过程，如果状态i能够到达状态u，那么状态i的答案更新**/
+                q.push(i);
+            }
+        }
+    }
+}
+
+char s[101005];
+int z[100005],zc;/**类似于一个栈**/
+
+int main(){
+    int n;
+    scanf("%d",&n);
+    for(int i=0;i<n;i++){
+        scanf("%s",s);
+        ins(s);/**往trie树插入s串**/
+    }
+    buildDfa();/**建立trie图**/
+    bfs();
+    scanf("%s",s);
+    z[zc]=0;
+    printf("%d\n",d[z[zc]]);
+    for(int i=0;s[i];i++){
+        if(s[i]=='-'){
+            if(zc>0){
+                zc--;
+            }
+        } else {
+            int u = t[z[zc]][s[i]-'a'];
+            z[++zc]=u;/**记录当前转移到哪个状态**/
+        }
+        printf("%d\n",d[z[zc]]);/**答案就是这个状态对应的答案**/
+    }
+    return 0;
+}

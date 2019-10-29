@@ -1,0 +1,106 @@
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<algorithm>
+ 
+#define maxn 100000+5
+ 
+using namespace std;
+ 
+struct Splay_Tree{
+    int ch[2];
+    int sz,key;
+}tr[maxn<<1];
+ 
+int a[maxn];
+int n,m,cnt,root;
+ 
+inline int in(){
+    int x=0,f=1;
+    char ch=getchar();
+    while(ch<'0' || ch>'9'){ if(ch=='-') f=-1; ch=getchar(); }
+    while(ch>='0' && ch<='9') x=x*10+ch-'0',ch=getchar();
+    return x*f;
+}
+ 
+inline void Update(int k){
+    tr[k].sz=tr[tr[k].ch[0]].sz+tr[tr[k].ch[1]].sz+1;
+}
+ 
+inline void Rotate(int &k,int d){
+    int t=tr[k].ch[d^1];
+    tr[k].ch[d^1]=tr[t].ch[d]; tr[t].ch[d]=k;
+    Update(k); Update(t); k=t;
+}
+ 
+void Splay(int &k,int x){
+    int d1=(tr[tr[k].ch[0]].sz<x?1:0),t=tr[k].ch[d1];
+    if(d1==1) x-=tr[tr[k].ch[0]].sz+1;
+    if(x){
+        int d2=(tr[tr[t].ch[0]].sz<x?1:0);
+        if(d2==1) x-=tr[tr[t].ch[0]].sz+1;
+        if(x){
+            Splay(tr[t].ch[d2],x);
+            if(d1==d2) Rotate(k,d1^1);
+            else Rotate(tr[k].ch[d1],d1);
+        }
+        Rotate(k,d1^1);
+    }
+    Update(k);
+}
+ 
+void dfs(int x){
+    if(tr[x].ch[0]) dfs(tr[x].ch[0]);
+    if(tr[x].key>=1 && tr[x].key<=n) printf("%d ",tr[x].key);
+    if(tr[x].ch[1]) dfs(tr[x].ch[1]);
+}
+ 
+void Insert(int x,char val){
+    Splay(root,x+1); Splay(tr[root].ch[1],x+1-tr[tr[root].ch[0]].sz);
+    //±¾Ó¦ÎªSplay(tr[root].r,x+2-(tr[tr[root].ch[0]].sz+1));
+    int k=++cnt;
+    tr[k].key=val; tr[k].ch[0]=tr[k].ch[1]=0;
+    tr[tr[root].ch[1]].ch[0]=k;
+    Update(k); Update(tr[root].ch[1]); Update(root);
+}
+ 
+void Delete(int l,int r){
+    Splay(root,l);
+    Splay(tr[root].ch[1],1+r-tr[tr[root].ch[0]].sz);
+    int k=tr[tr[root].ch[1]].ch[0];
+    tr[tr[root].ch[1]].ch[0]=0;
+    Update(tr[root].ch[1]); Update(root);
+    Splay(root,1); Splay(tr[root].ch[1],1-tr[tr[root].ch[0]].sz);
+    tr[tr[root].ch[1]].ch[0]=k;
+    Update(k); Update(tr[root].ch[1]); Update(root);
+}
+ 
+void Build(int l,int r,int &k){
+    if(l>r) return;
+    if(l==r){
+        k=++cnt; tr[k].ch[0]=tr[k].ch[1]=0;
+        tr[k].key=a[l];
+        tr[k].sz=1;
+        return;
+    }
+    int mid=(l+r)>>1; k=++cnt;
+    Build(l,mid-1,tr[k].ch[0]);
+    Build(mid+1,r,tr[k].ch[1]);
+    tr[k].key=a[mid];
+    Update(k);
+}
+ 
+int main(){
+    n=in(); m=in();
+    for(int i=1;i<=n;i++) a[i]=i;
+    Build(0,n+1,root);
+//    dfs(root); puts("");
+    for(int i=1;i<=m;i++){
+        int l,r,x;
+        l=in(); x=in();
+        r=l+x-1;
+        Delete(l,r);
+    }
+    dfs(root);
+    return 0;
+}

@@ -1,0 +1,135 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid int mid=l+r>>1
+int n,q;int w[maxn],c[maxn];
+struct edge{int nxt,to;}e[maxn<<1];
+int cnt,head[maxn];
+int fa[maxn],deep[maxn],siz[maxn],son[maxn],rk[maxn],top[maxn],id[maxn];
+void adde(int u,int v){
+    e[++cnt].nxt=head[u];
+    e[cnt].to=v;
+    head[u]=cnt;
+}
+void dfs1(int u,int pre,int dep){
+    fa[u]=pre;deep[u]=dep;siz[u]=1;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==pre)continue;
+        dfs1(v,u,dep+1);
+        siz[u]+=siz[v];
+        if(siz[v]>siz[son[u]])son[u]=v;
+    }
+}
+void dfs2(int u,int t){
+    top[u]=t;id[u]=++cnt;rk[cnt]=u;
+    if(!son[u])return;
+    dfs2(son[u],t);
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v!=son[u]&&v!=fa[u])dfs2(v,v);
+    }
+}
+struct node{
+    int maxv,sum,ls,rs;
+    node(int maxv=0,int sum=0,int ls=0,int rs=0):maxv(maxv),sum(sum),ls(ls),rs(rs){}
+}seg[18*(maxn<<2)];
+int tot,root[maxn];
+void update(int rt,int p,int v,int l,int r){
+    if(l==r){
+        seg[rt].maxv=seg[rt].sum=v;
+        return;
+    }intmid;
+    if(p<=mid){
+        if(!seg[rt].ls)seg[rt].ls=++tot;
+        update(seg[rt].ls,p,v,l,mid);
+    }
+    else{
+        if(!seg[rt].rs)seg[rt].rs=++tot;
+        update(seg[rt].rs,p,v,mid+1,r);
+    }
+    seg[rt].maxv=max(seg[seg[rt].ls].maxv,seg[seg[rt].rs].maxv);
+    seg[rt].sum=seg[seg[rt].ls].sum+seg[seg[rt].rs].sum;
+}
+int querymax(int rt,int L,int R,int l,int r){
+    if(L<=l&&R>=r){
+        return seg[rt].maxv;
+    }intmid;int ret=0;
+    if(L<=mid){
+        if(!seg[rt].ls)seg[rt].ls=++tot;
+        ret=max(ret,querymax(seg[rt].ls,L,R,l,mid));
+    }
+    if(R>mid){
+        if(!seg[rt].rs)seg[rt].rs=++tot;
+        ret=max(ret,querymax(seg[rt].rs,L,R,mid+1,r));
+    }return ret;
+}
+int querysum(int rt,int L,int R,int l,int r){
+    if(L<=l&&R>=r){
+        return seg[rt].sum;
+    }intmid;int ret=0;
+    if(L<=mid){
+        if(!seg[rt].ls)seg[rt].ls=++tot;
+        ret+=querysum(seg[rt].ls,L,R,l,mid);
+    }
+    if(R>mid){
+        if(!seg[rt].rs)seg[rt].rs=++tot;
+        ret+=querysum(seg[rt].rs,L,R,mid+1,r);
+    }return ret;
+}
+int qquerymax(int x,int y){
+    int ans=0;int xx=x;
+    while(top[x]!=top[y]){
+        if(deep[top[x]] < deep[top[y]])swap(x,y);
+        ans=max(ans,querymax(root[c[xx]],id[top[x]],id[x],1,n));
+        x=fa[top[x]];
+    }
+    if(deep[x]>deep[y])swap(x,y);
+    ans=max(ans,querymax(root[c[xx]],id[x],id[y],1,n));
+    return ans;
+}
+int qquerysum(int x,int y){
+    int ans=0;int xx=x;
+    while(top[x]!=top[y]){
+        if(deep[top[x]] < deep[top[y]])swap(x,y);
+        ans+=querysum(root[c[xx]],id[top[x]],id[x],1,n);
+        x=fa[top[x]];
+    }
+    if(deep[x]>deep[y])swap(x,y);
+    ans+=querysum(root[c[xx]],id[x],id[y],1,n);
+    return ans;
+}
+
+int main(){
+    for(int i=1;i<=1e5;i++)root[i]=++tot;
+    scanf("%d%d",&n,&q);
+    int u,v;
+    for(int i=1;i<=n;i++){
+        scanf("%d%d",w+i,c+i);
+    }
+    for(int i=1;i<n;i++){
+        scanf("%d%d",&u,&v);
+        adde(u,v);adde(v,u);
+    }cnt=0;dfs1(1,0,1);dfs2(1,1);
+    for(int i=1;i<=n;i++){
+        update(root[c[i]],id[i],w[i],1,n);
+    }
+    char op[3];
+    while(q--){
+        scanf("%s%d%d",op,&u,&v);
+        if(op[1]=='C'){
+            update(root[v],id[u],w[u],1,n);
+            update(root[c[u]],id[u],0,1,n);c[u]=v;
+        }else if(op[1]=='W'){
+            update(root[c[u]],id[u],v,1,n);w[u]=v;
+        }else if(op[1]=='S'){
+            printf("%d\n",qquerysum(u,v));
+        }else{
+            printf("%d\n",qquerymax(u,v));
+        }
+    }
+    return 0;
+}

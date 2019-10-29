@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct node
+{
+    int v;
+    node *l,*r;
+    node():l(NULL),r(NULL){};
+    node(int v):v(v),l(NULL),r(NULL){};
+};
+
+void build(node* u,int val)
+{
+    if(val < u->v)
+    {
+        if(u->l!=NULL)
+            build(u->l,val);
+        else
+        {
+            u->l = new node(val);
+        }
+    }
+    else
+    {
+        if(u->r!=NULL)
+            build(u->r,val);
+        else
+        {
+            u->r = new node(val);
+        }
+    }
+}
+
+void doit(node* u,int val)
+{
+    if(val == u->v)
+    {
+        printf("\n");return ;
+    }
+    else if(val > u->v)
+    {
+        printf("W");
+        doit(u->r,val);
+    }
+    else
+    {
+        printf("E");
+        doit(u->l,val);
+    }
+}
+
+int main()
+{
+    int t;cin>>t;
+    while(t--)
+    {
+        int n;cin>>n;n--;
+        int x;cin>>x;
+        node* root = new node();
+        root->v = x;
+        while(n--)
+        {
+            cin>>x;
+            build(root,x);
+        }
+        int q;cin>>q;
+        while(q--)
+        {
+            cin>>x;
+            doit(root,x);
+        }
+    }
+    return 0;
+}

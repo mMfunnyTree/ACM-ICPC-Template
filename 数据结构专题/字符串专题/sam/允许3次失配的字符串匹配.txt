@@ -1,0 +1,80 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+int tran(char c){
+    if(c=='A')return 0;if(c=='T')return 1;if(c=='C')return 2;if(c=='G')return 3;
+}
+char s1[maxn],s2[maxn];
+int len1,len2;
+struct SAM{
+    int pa[maxn<<1],son[maxn<<1][4];
+    int deep[maxn<<1],cnt,root,last;
+    int sum[maxn<<1],topo[maxn<<1];
+    int r[maxn<<1];
+    inline int newnode(int _deep){
+        deep[++cnt]=_deep;
+        return cnt;
+    }
+    inline void sam(int alp){
+        int np=newnode(deep[last]+1);
+        int u=last;
+        memset(son[np],0,sizeof son[np]);
+        while(u&&!son[u][alp])son[u][alp]=np,u=pa[u];
+        if(!u)pa[np]=root;
+        else{
+            int v=son[u][alp];
+            if(deep[v]==deep[u]+1)pa[np]=v;
+            else{
+                int nv=newnode(deep[u]+1);
+                memcpy(son[nv],son[v],sizeof son[v]);
+                pa[nv]=pa[v],pa[v]=pa[np]=nv;
+                while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+            }
+        }last=np;
+    }
+    inline void pre(){
+        cnt=0;
+        memset(son[1],0,sizeof son[1]);
+        root=last=newnode(0);
+        memset(r,0,sizeof r);
+    }
+    inline void toposort(){
+        int tmp=root;
+        for(int a=0;a<len1;a++){
+            tmp=son[tmp][tran(s1[a])];
+            r[tmp]=1;
+        }
+        memset(sum,0,sizeof sum);
+        for(int a=1;a<=cnt;a++)sum[deep[a]]++;
+        for(int a=1;a<=deep[last];a++)sum[a]+=sum[a-1];
+        for(int a=1;a<=cnt;a++)topo[sum[deep[a]]--]=a;
+        for(int a=cnt;a>=1;a--)r[pa[topo[a]]] += r[topo[a]];
+    }
+}A;
+int ans;
+void dfs(int pos1,int pos2,int lim){
+    if(lim>3)return;
+    if(pos2==len2){
+        ans+=A.r[pos1];return;
+    }
+    for(int a=0;a<4;a++){
+        if(A.son[pos1][a]){
+            dfs(A.son[pos1][a],pos2+1,lim+(a!=tran(s2[pos2])));
+        }
+    }
+}
+int main(){
+    int t;cin>>t;
+    while(t--){
+        ans=0;
+        scanf("%s%s",s1,s2);
+        A.pre();
+        len1=strlen(s1);len2=strlen(s2);
+        for(int i=0;i<len1;i++)A.sam(tran(s1[i]));
+        A.toposort();
+        dfs(1,0,0);
+        printf("%d\n",ans);
+    }
+    return 0;
+}

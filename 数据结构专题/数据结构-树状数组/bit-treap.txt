@@ -1,0 +1,25 @@
+#include<bits/stdc++.h>
+const int maxn=1<<25;
+const int p=1e7+10;
+int a[maxn+1];
+inline void add(int x,int v){x+=p;while(x<=maxn)a[x]+=v,x+=x&-x;}
+inline int query(int x){x+=p;int ans=0;while(x)ans+=a[x],x&=x-1;return ans;}
+inline int kth(int k,int rt=maxn){
+    for(int i=rt;i>>=1;)
+        if(a[rt-i]>=k)rt-=i;
+        else k-=a[rt-i];
+    return rt-p;
+}
+int n,opt,x;
+int main(){
+    scanf("%d",&n);
+    for(int i=1;i<=n;++i){
+        scanf("%d%d",&opt,&x);
+        if(opt==1)add(x,1);
+        if(opt==2)add(x,-1);
+        if(opt==3)printf("%d\n",query(x-1)+1);
+        if(opt==4)printf("%d\n",kth(x));
+        if(opt==5)printf("%d\n",kth(query(x-1)));
+        if(opt==6)printf("%d\n",kth(query(x)+1));
+    }
+}

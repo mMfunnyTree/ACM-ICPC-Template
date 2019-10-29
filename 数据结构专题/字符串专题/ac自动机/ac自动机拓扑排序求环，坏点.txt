@@ -1,0 +1,147 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int maxn = 2e5+10;
+string s[maxn];
+char ans[maxn];
+int flag=0,ansnum=0,tt=0;
+int G[maxn][2];
+void addedge(int u,int v,int w){
+    G[u][w]=v;
+}
+
+struct Trie{
+    int next[maxn][2],fail[maxn],ed[maxn];
+    int root,L;
+    int newnode(){
+        memset(next[L],-1,sizeof next[L]);
+        ed[L++]=0;
+        return L-1;
+    }
+    void init(){
+        memset(fail,0,sizeof fail);
+        memset(ed,0,sizeof ed);
+        L=0;
+        root=newnode();
+    }
+    void insert(string buf){
+        int len=buf.length();
+        int now=root;
+        for(int i=0;i<len;i++){
+            if(next[now][buf[i]-'0']==-1){
+                next[now][buf[i]-'0']=newnode();
+            }
+            now=next[now][buf[i]-'0'];
+        }
+        ed[now]=1;
+    }
+    void buildfail(){
+        queue<int> Q;
+        fail[root]=root;
+        for(int i=0;i<2;i++){
+            if(next[root][i]==-1)
+                next[root][i]=root;
+            else{
+                fail[next[root][i]]=root;
+                Q.push(next[root][i]);
+            }
+        }
+        while(!Q.empty()){
+            int now=Q.front();Q.pop();
+            if(ed[fail[now]])ed[now]=1;
+            for(int i=0;i<2;i++){
+                if(next[now][i]==-1){
+                    next[now][i]=next[fail[now]][i];
+                }
+                else{
+                    fail[next[now][i]]=next[fail[now]][i];
+                    Q.push(next[now][i]);
+                }
+            }
+        }
+    }
+    int in[maxn],vis[maxn],inq[maxn],in2[maxn];
+    void dfs2(int now){
+        for(int i=0;i<2;i++){
+            int j=next[now][i];
+            if(ed[j])continue;
+            in[j]++;in2[j]++;
+            if(in[j]==1)dfs2(j);
+        }
+    }
+    bool topo(){
+        memset(in,0,sizeof in);
+        memset(in2,0,sizeof in2);
+        memset(inq,0,sizeof inq);
+        memset(vis,0,sizeof vis);
+        dfs2(0);
+        queue<int> q;
+        if(in[0])return 1;
+        q.push(0);
+        while(!q.empty()){
+            int now=q.front();q.pop();
+            for(int i=0;i<2;i++){
+                int j=next[now][i];
+                if(ed[j])continue;
+                in[j]--;
+                vis[j]=1;
+                if(!in[j]){
+                    inq[j]=1;
+                    q.push(j);
+                }
+            }
+        }
+        for(int i=0;i<L;i++){
+            if(inq[i]!=vis[i])return true;
+        }
+        return false;
+    }
+    int dp[maxn],to[maxn],maxx=0;
+    void dfs5(int now,int num){
+        maxx=max(num,maxx);
+        for(int i=0;i<2;i++){
+            int j=next[now][i];
+            if(ed[j])continue;
+            dfs5(j,num+1);
+        }
+    }
+    void dfs3(int now,int num){
+        if(num==maxx){tt=1;return;}
+        for(int i=0;i<2;i++){
+            int j=next[now][i];
+            if(ed[j])continue;
+            dfs3(j,num+1);
+            if(tt){
+                ans[num]=i+'0';return;
+            }
+        }
+    }
+    void query(){
+        if(topo()){
+            puts("-1");return ;
+        }
+        memset(dp,0,sizeof dp);
+        memset(to,0,sizeof to);
+        queue<int>q;
+        dfs5(0,0);
+        dfs3(0,0);
+        printf("%s",ans);
+    }
+}ac;
+void init(){
+    memset(ans,0,sizeof ans);
+    flag=tt=ansnum=0;
+}
+int main(){
+    int n;
+    scanf("%d",&n);
+    ac.init();
+    init();
+    for(int i=0;i<n;i++){
+        cin>>s[i];
+        ac.insert(s[i]);
+    }
+    ac.buildfail();
+    ac.query();
+    return 0;
+}

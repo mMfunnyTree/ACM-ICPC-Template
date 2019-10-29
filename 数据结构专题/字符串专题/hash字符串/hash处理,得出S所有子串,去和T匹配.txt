@@ -1,0 +1,60 @@
+//2017.1.7组队赛遇见的字符串处理题
+//给两个串S和T，长度4000，找出各自最长的连续子串，使得两个子串的组成字母完全相同
+//TL:10S
+//思路：暴力找出S所有子串的hash值，扔进set，从大到小枚举ans，在T中找是否存在
+
+/*需要注意的是，每当unordered_set（hash表实现的set）内部进行一次扩容或者缩容，
+都需要对表中的数据重新计算，也就是说，扩容或者缩容的时间复杂度至少为O(N)*/
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef unsigned long long ull;
+
+const int maxn = 4040;
+char a[maxn],b[maxn];
+int lena,lenb;
+
+unordered_set<ull> st;
+
+int cnt[4040][27],cntt[4040][27];
+
+bool ok(int len){
+    if(!len)return 1;
+
+    for(int i=1;i+len-1<=lena;i++){
+        ull sd=233;
+        for(int j=0;j<26;j++)
+            sd=sd*17+cnt[i+len-1][j]-cnt[i-1][j];
+        st.insert(sd);
+    }
+    for(int i=1;i+len-1<=lenb;i++){
+        ull sd=233;
+        for(int j=0;j<26;j++)
+            sd=sd*17+cntt[i+len-1][j]-cntt[i-1][j];
+        if(st.count(sd))return 1;
+    }
+    st.clear();return 0;
+}
+
+int main(){
+    scanf("%s%s",a+1,b+1);
+    lena=strlen(a+1);
+    lenb=strlen(b+1);
+    for(int i=1;i<=lena;i++){
+        for(int j=0;j<26;j++){
+            cnt[i][j]=cnt[i-1][j];
+        }
+        cnt[i][a[i]-'a']++;
+    }
+    for(int i=1;i<=lenb;i++){
+        for(int j=0;j<26;j++){
+            cntt[i][j]=cntt[i-1][j];
+        }
+        cntt[i][b[i]-'a']++;
+    }
+    int ans=min(lena,lenb);
+
+    while(!ok(ans))ans--;
+    cout<<ans;
+    return 0;
+}

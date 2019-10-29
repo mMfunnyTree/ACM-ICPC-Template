@@ -1,0 +1,59 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+
+const int maxn = 1e5+5;
+
+int _f,_ch,n,q,num,root[maxn],rk[maxn];
+
+struct point{
+    int id,val;
+    friend bool operator < (point a,point b){
+        return a.val<b.val;
+    }
+}p[maxn];
+
+struct seg_tree{
+    int L,R,sum;
+}T[maxn*20];
+
+void update(int &u,int l,int r,int k){
+    T[++num]=T[u];
+    ++T[u=num].sum;
+    if(l==r){
+        return;
+    }
+    int mid=l+r>>1;
+    if(k<=mid)update(T[u].L,l,mid,k);
+    else      update(T[u].R,mid+1,r,k);
+}
+
+int query(int L,int R,int l,int r,int k){
+    if(l==r)return l;
+    int mid=l+r>>1;
+    int sum=T[T[R].L].sum - T[T[L].L].sum;
+    if(k<=sum)return query(T[L].L,T[R].L,l,mid,k);
+    return query(T[L].R,T[R].R,mid+1,r,k-sum);
+}
+
+int main(){
+    scanf("%d%d",&n,&q);
+    for(int i=1;i<=n;i++){
+        p[i].id=i;
+        scanf("%d",&p[i].val);
+    }
+    sort(p+1,p+1+n);
+    for(int i=1;i<=n;i++){
+        rk[p[i].id]=i;
+    }
+    for(int i=1;i<=n;i++){
+        root[i]=root[i-1];
+        update(root[i],1,n,rk[i]);
+    }
+    while(q--){
+        int l,r,k;
+        scanf("%d%d%d",&l,&r,&k);
+        printf("%d\n",p[query(root[l-1],root[r],1,n,k)].val);
+    }
+    return 0;
+}

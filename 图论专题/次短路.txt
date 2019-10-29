@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+#define INF 1e16
+#define LL long long
+using namespace std;
+struct edge{
+    int to;
+    LL cost;
+    edge(int tv = 0,LL tc = 0):to(tv),cost(tc){}
+};
+int N,R;
+typedef pair<LL ,LL> P;
+vector<edge> graph[100010];
+LL dist[100010],dist2[100010];
+LL solve()
+{
+    fill(dist,dist+N,INF);
+    fill(dist2,dist2+N,INF);
+    priority_queue<P, vector<P> ,greater<P> > q;
+    dist[0] =0;
+    q.push(P(0,0));
+    while(!q.empty())
+    {
+        P p =q.top();
+
+        q.pop();
+        LL v=p.second,d=p.first;
+        if(dist2[v] < d) continue;
+        for(int i=0 ; i<graph[v].size();i++)
+        {
+            edge &e=graph[v][i];
+            LL d2=d+e.cost;
+            if(dist[e.to]>d2)
+            {
+                swap(dist[e.to],d2);
+                q.push(P(dist[e.to],e.to));
+            }
+            if(dist2[e.to]>d2&&dist[v]<d2){
+                dist2[e.to]=d2;
+                q.push(P(dist2[e.to],e.to));
+            }
+        }
+    }
+    return dist2[N-1];
+}
+int main(){
+    int t,n,m;
+    cin>>t;
+    while(t--)
+    {
+        cin>>N>>R;
+        for(int i=0;i<N;i++) graph[i].clear();
+        for(int i=0;i<R;i++)
+        {
+            LL a,b,c;
+            scanf("%lld %lld %lld",&a,&b,&c);
+            graph[a-1].push_back(edge(b-1,c));
+            graph[b-1].push_back(edge(a-1,c));
+        }
+        printf("%lld\n",solve());
+    }
+    return 0;
+}

@@ -1,0 +1,69 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn = 410;
+int mp[maxn][maxn];
+int match[maxn];
+bool vis[maxn];
+int ans[maxn];
+int n;
+struct node {
+    int x,v;
+}a[maxn];
+bool cmp(node p,node q)
+{
+    return p.v>q.v;
+}
+bool dfs(int u)
+{
+    for(int v = 1; v <= n; v++) {
+        if(!vis[v] && mp[u][v]) {
+            vis[v] = true; if(match[v] == -1 || dfs(match[v])) {
+                match[v] = u; return true;
+            }
+        }
+    }
+    return false;
+}
+void hungary()
+{
+    int sum = 0;
+    memset(match, -1, sizeof(match));
+    for(int j = 1 ; j <= n; j++){
+        int i = a[j].x;
+        memset(vis, false, sizeof(vis));
+        dfs(i);
+    }
+}
+int main()
+{
+    freopen("beloved.in","r",stdin);
+    freopen("beloved.out","w",stdout);
+    scanf("%d", &n);
+    memset(mp, 0, sizeof(mp));
+    for(int i = 1; i <= n; i++) {
+        scanf("%d", &a[i].v);
+        a[i].x = i;
+    }
+    sort(a+1,a+(n+1),cmp);
+    int num;
+    for(int i = 1; i <= n; i++) {
+        scanf("%d", &num);
+        int c;
+        for(int j = 1; j <= num; j++) {
+            scanf("%d", &c);
+            mp[i][c] = 1;
+        }
+    }
+    hungary();
+    memset(ans,0,sizeof(ans));
+    for(int i = 1; i <= n; i++) {
+        if(match[i] != -1)
+            ans[match[i]] = i;
+    }
+    for(int i = 1; i <= n; i++) {
+        if(i == 1)
+            printf("%d", ans[i]);
+        else printf(" %d", ans[i]);
+    }
+    return 0;
+}

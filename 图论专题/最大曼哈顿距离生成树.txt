@@ -1,0 +1,127 @@
+#include <iostream>
+using namespace std;
+typedef long long LL;
+const LL INF = 1e12;
+const int N = 100000 + 10;
+int n;LL x[N],y[N];
+int main() {
+    scanf("%d",&n);
+    LL mx1,mx2,mn1,mn2;
+    mx1=mx2=-INF; mn1=mn2=+INF;
+    for(int i=1;i<=n;i++){
+        scanf("%lld%lld",&x[i],&y[i]);
+        mx1=max(mx1,x[i]+y[i]); mn1=min(mn1,x[i]+y[i]);
+        mx2=max(mx2,x[i]-y[i]); mn2=min(mn2,x[i]-y[i]);
+    }
+    LL ans=INF, bu=0;
+    for(int i=1;i<=n;i++){
+        LL tmp=max(max(x[i]+y[i]-mn1,mx1-(x[i]+y[i])),max((x[i]-y[i])-mn2,mx2-(x[i]-y[i])));
+        ans=min(ans,tmp);
+        bu=max(bu,min(max(x[i]+y[i]-mn1,mx1-(x[i]+y[i])),max((x[i]-y[i])-mn2,mx2-(x[i]-y[i]))));
+    }
+    int c1=0,c2=0;
+    for(int i=1;i<=n;i++){
+        LL tmp=max(x[i]+y[i]-mn1,mx1-(x[i]+y[i]));
+        if(tmp>=ans) c1++;
+        tmp=max((x[i]-y[i])-mn2,mx2-(x[i]-y[i])); 
+        if(tmp>=ans) c2++;
+    }
+    if(c1!=n && c2!=n)ans=min(ans,bu);
+    cout<<ans<<endl;
+}
+
+
+#include<cstdio>
+#include<cstdlib>
+#include<algorithm>
+#include<set>
+#include<vector>
+using namespace std;
+typedef long long ll;
+typedef pair<ll,int> abcd;
+
+inline char nc(){
+  static char buf[100000],*p1=buf,*p2=buf;
+  return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
+}
+inline void read(int &x){
+  char c=nc(),b=1;
+  for (;!(c>='0' && c<='9');c=nc()) if (c=='-') b=-1;
+  for (x=0;c>='0' && c<='9';x=x*10+c-'0',c=nc()); x*=b;
+}
+
+const int N=100005;
+
+const int dx[]={1,-1,1,-1};
+const int dy[]={-1,-1,1,1};
+
+set<abcd> Set[4];
+
+int n; ll Ans=0;
+int x[N],y[N];
+ll a[N][4];
+
+int fat[N];
+#define pb push_back
+vector<int> g[N];
+
+inline int Fat(int u){
+  return fat[u]==u?u:fat[u]=Fat(fat[u]);
+}
+inline bool Merge(int x,int y){
+  x=Fat(x); y=Fat(y); if (x==y) return 0;
+  for (int i=0;i<(int)g[x].size();i++) g[y].pb(g[x][i]);
+  g[x].clear();
+  fat[x]=y; return 1;
+}
+
+struct edge{
+  int u,v,w;
+  edge(int u=0,int v=0,int w=0):u(u),v(v),w(w) { }
+}ed[N];
+int pnt=0;
+int main(){
+  read(n);
+  for (int i=1;i<=n;i++){
+    read(x[i]); read(y[i]);
+    for (int j=0;j<4;j++){
+      a[i][j]=x[i]*dx[j]+y[i]*dy[j];
+      Set[j].insert(abcd(a[i][j],i));
+    }
+  }
+  for (int i=1;i<=n;i++) fat[i]=i,g[i].pb(i);
+  Ans=2e9+7;
+  while (1){
+    int flag=0; pnt=0;
+    for (int i=1;i<=n;i++){
+      if (fat[i]!=i) continue;
+      if (g[i].size()==n){
+    flag=1; break;
+      }
+      for (int j=0;j<(int)g[i].size();j++)
+    for (int k=0;k<4;k++)
+      Set[k].erase(abcd(a[g[i][j]][k],g[i][j]));
+      ll Max=-1LL<<40,v;
+      for (int k=0;k<4;k++){
+    ll maxu=-1LL<<40,maxv;
+    for (int j=0;j<(int)g[i].size();j++)
+      if (a[g[i][j]][k]>=maxu)
+        maxu=a[g[i][j]][k];
+    set<abcd>::iterator it=Set[k^3].end(); it--;
+    maxv=it->first;
+    if (maxu+maxv>=Max)
+      Max=maxu+maxv,v=it->second;
+      }
+      ed[++pnt]=edge(i,v,Max);
+      for (int j=0;j<(int)g[i].size();j++)
+    for (int k=0;k<4;k++)
+      Set[k].insert(abcd(a[g[i][j]][k],g[i][j]));
+    }
+    if (flag) break;
+    for (int j=1;j<=pnt;j++)
+      if (Merge(ed[j].u,ed[j].v))
+    Ans = min(Ans,1ll*ed[j].w);
+  }
+  printf("%lld\n",Ans);
+  return 0;
+}

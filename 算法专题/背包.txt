@@ -1,0 +1,34 @@
+#include iostream
+#include algorithm
+#include cstring
+using namespace std;
+#define maxn 101
+struct mmp
+{
+    int exp,redu;
+}a[maxn];
+int main()
+{
+    int n,m,k,s;
+    while(cinnmks)
+    {
+        int dp[maxn][maxn]={0};
+
+        for(int i=1;i=k;i++)
+            cina[i].expa[i].redu;
+
+        for(int i=1;i=k;i++)
+            for(int j=a[i].redu;j=m;j++)
+                for(int l=1;l=s;l++)
+                    dp[j][l]=max( dp[j-a[i].redu][l-1] + a[i].exp, dp[j][l] );
+        if(dp[m][s]=n)
+            for(int i=0;i=m;i++)
+                {if(dp[i][s]=n)
+                {
+                    coutm-iendl;
+                    break;
+                }}
+        else cout-1n;
+    }
+    return 0;
+}

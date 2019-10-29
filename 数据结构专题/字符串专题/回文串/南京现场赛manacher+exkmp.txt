@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 2e6+10;
+char Ma[maxn<<1];
+int Mp[maxn<<1];
+
+void manacher(char s[],int len){
+    int l=0;
+    Ma[l++]='$';
+    Ma[l++]='#';
+    for(int i=0;i<len;i++){
+        Ma[l++]=s[i];
+        Ma[l++]='#';
+    }
+    Ma[l]=0;
+    int mx=0,id=0;
+    for(int i=0;i<l;i++){
+        Mp[i]=mx>i?min(Mp[2*id-i],mx-i):1;
+        while(Ma[i+Mp[i]]==Ma[i-Mp[i]])Mp[i]++;
+        if(i+Mp[i]>mx){
+            mx=i+Mp[i];
+            id=i;
+        }
+    }
+}
+
+void pre_EKMP(char x[],int m,int next[])
+{
+    next[0]=m;
+    int j=0;
+    while(j+1<m && x[j]==x[j+1])j++;
+    next[1]=j;
+    int k=1;
+    for(int i=2; i<m; i++)
+    {
+        int p=next[k]+k-1;
+        int L=next[i-k];
+        if(i+L<p+1)next[i]=L;
+        else
+        {
+            j=max(0,p-i+1);
+            while(i+j<m && x[i+j]==x[j])j++;
+            next[i]=j;
+            k=i;
+        }
+    }
+}
+
+void EKMP(char x[],int m,char y[],int n,int next[],int extend[])
+{
+    pre_EKMP(x,m,next);
+    int j=0;
+    while(j<n && j<m && x[j]==y[j])j++;
+    extend[0]=j;
+    int k=0;
+    for(int i=1; i<n; i++)
+    {
+        int p=extend[k]+k-1;
+        int L=next[i-k];
+        if(i+L<p+1)extend[i]=L;
+        else
+        {
+            j=max(0,p-i+1);
+            while(i+j<n && j<m && y[i+j]==x[j])j++;
+            extend[i]=j;
+            k=i;
+        }
+    }
+}
+
+
+char s[maxn],t[maxn];
+int pre[maxn];
+int extend[maxn],nxt[maxn];
+
+int main(){
+    scanf("%s",s);
+    int lens=strlen(s);
+    manacher(s,lens);
+    for(int i=2;i<2*lens+2;i++){
+        if(Mp[i]<2)continue;
+        int idx = i/2;
+        int id  = idx - Mp[i]/2+1;
+        pre[id]++;
+        pre[idx+1]--;
+    }
+    for(int i=1;i<=lens;i++){
+        pre[i]+=pre[i-1];
+    }
+    scanf("%s",t);
+    int lent=strlen(t);
+    reverse(s,s+lens);
+    EKMP(t,lent,s,lens,nxt,extend);
+    ll ans=0;
+    int j=lens-1;
+    for(int i=2;i<=lens;i++){
+        ans+=1ll*pre[i]*extend[j];
+        j--;
+    }
+    cout<<ans<<endl;
+    return 0;
+}
+

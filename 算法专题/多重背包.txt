@@ -1,0 +1,47 @@
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+struct node
+{
+    int h,a,c;
+}m[500];
+
+bool cmp(node A,node B)
+{
+    if(A.a==B.a)
+        return A.h>B.h;
+    else
+        return A.a<B.a;
+}
+
+int dp[40004],used[40004];//记录可能出现的高度，记录已经使用的石头的位置以及个数
+int maxn=0;
+int main()
+{
+    int n;cin>>n;
+    for(int i=0;i<n;i++)
+    {
+        cin>>m[i].h>>m[i].a>>m[i].c;
+    }sort(m,m+n,cmp);
+
+    dp[0]=1;
+
+    for(int i=0;i<n;i++)//遍历不同种类
+    {
+        memset(used,0,sizeof(used));//清空记录的位置和个数
+        for(int j=m[i].h;j<=m[i].a;j++)
+        {
+            if(dp[j-m[i].h]&&!dp[j]&&used[j-m[i].h]<m[i].c)
+            {
+                used[j]=used[j-m[i].h]+1;
+                dp[j]=1;
+                maxn=max(maxn,j);
+            }
+        }
+    }
+    cout<<maxn<<endl;
+    return 0;
+}

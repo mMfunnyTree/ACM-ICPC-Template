@@ -1,0 +1,23 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    ofstream outfile;
+    outfile.open("local-test.txt");
+
+    for(int c=1;c<=1000000;c++)
+    {
+        if(c%2==0||c%5==0)
+        {
+            outfile<<0<<",";continue;
+        }
+        for(int m=1,n=1;m<=c;m++)
+        {
+            if(n%c==0){outfile<<m<<",";break;}
+            n=(n%c)*10+1;
+        }
+    }
+    outfile.close();
+    return 0;
+}

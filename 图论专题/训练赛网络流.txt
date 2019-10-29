@@ -1,0 +1,154 @@
+#include<bits/stdc++.h>
+using namespace std;
+int level[80010],n,m,cnt=-1,head[80010],ans,s,t,k,mp[110][110],hed[81000];
+struct e{
+    int to,next,c;
+}edge[800010];
+void add(int a,int b,int c)
+{
+    edge[++cnt].to=b;
+    edge[cnt].next=head[a];
+    head[a]=cnt;
+    edge[cnt].c=c;
+    edge[++cnt].to=a;
+    edge[cnt].next=head[b];
+    head[b]=cnt;
+    edge[cnt].c=0;
+}
+int spfa()
+{
+    memset(level,-1,sizeof(level));
+    queue<int> q;
+    q.push(s);
+    while(!q.empty())
+    {
+        int u=q.front();
+        for(int i=head[u];i!=-1;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(level[v]==-1&&edge[i].c!=0&&v!=s)
+            {
+                level[v]=level[u]+1;
+                q.push(v);
+                if(v==t) return 1;
+            }
+        }
+        q.pop();
+    }
+    return 0;
+}
+int dfs()
+{
+    int stac1[20100],stac2[21010],top=0,res=0;
+    stac1[top++]=s;int tr=10000000,pos=-1;
+    while(1)
+    {
+        int trr=10000000;
+        if(stac1[top-1]==t)
+        {
+            for(int i=0;i<top-1;i++)
+            {
+                if(tr>edge[stac2[i]].c)
+                {
+                    tr=edge[stac2[i]].c;
+                    pos=i;
+                }
+            }
+            for(int i=0;i<top-1;i++)
+            {
+                edge[stac2[i]].c-=tr;
+                edge[stac2[i]^1].c+=tr;
+                if(i<pos)
+                {
+                    if(trr>edge[stac2[i]].c)
+                    {
+                        trr=edge[stac2[i]].c;
+                        pos=i;
+                    }
+                }
+            }
+            res+=tr;
+            tr=trr;
+            top=pos+1;
+        }
+        int j;
+        for(j=head[stac1[top-1]];j!=-1;j=edge[j].next)
+        {
+            int u=stac1[top-1],v=edge[j].to;
+            if(level[v]==level[u]+1&&edge[j].c)
+            {
+                stac2[top-1]=j;
+                stac1[top++]=v;
+                break;
+            }
+        }
+        if(j==-1)
+        {
+            if(stac1[top-1]==s) break;
+            else{
+                level[stac1[top-1]]=-1;
+                top--;
+            }
+        }
+
+    }
+    return res;
+}
+int maxflow()
+{
+    int res=0;
+    while(spfa()) res+=dfs();
+    return res;
+}
+int main()
+{
+    int T,cas=0;
+    cin>>T;
+    while(T--)
+    {
+        memset(head,-1,sizeof(head));
+        cnt=-1;
+        cin>>n;
+        char str[120];
+        int ca[11],cb[11],sum=0;
+        scanf("%s",str);
+        for(int i=0;i<=9;i++)
+        {
+            scanf("%d %d",&ca[i],&cb[i]);
+        }
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=1;j<=n;j++)
+            {
+                scanf("%d",&mp[i][j]);
+            }
+        }
+        s=0;
+        t=n*n+n+11;
+        for(int i=0;i<n;i++)
+        {
+            hed[i+1]=-1*ca[str[i]-'0'];
+            add(i+1,n*n+n+1+str[i]-'0',1000);
+        }
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=1;j<=n;j++)
+            {
+                hed[j+i*n]=mp[i][j];
+                add(j+i*n,i,1000);
+                add(j+i*n,j,1000);
+            }
+        }
+        for(int i=0;i<10;i++)
+        {
+            hed[n*n+n+1+i]=-1*(cb[i]-ca[i]);
+        }
+        for(int i=s+1;i<t;i++)
+        {
+            sum+=max(hed[i],0);
+            if(hed[i]<0) add(i,t,-1*hed[i]);
+            if(hed[i]>0) add(s,i,hed[i]);
+        }
+        printf("Case #%d: %d\n",++cas,sum-maxflow());
+    }
+}

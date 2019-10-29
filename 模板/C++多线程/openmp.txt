@@ -1,0 +1,330 @@
+#include<bits/stdc++.h>
+#include<omp.h>
+using namespace std;
+
+int main()
+{
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(int i=0; i<=1000000000; i++)
+        {
+            int a=3,b=5;
+            int c=a+b;
+        }
+    }
+
+}
+
+#include <iostream>
+#include <omp.h>
+#include <chrono>
+#include <vector>
+#include <thread>
+
+using namespace std;
+
+void doNothing() {}
+
+int run(int algorithmToRun)
+{
+    auto startTime = std::chrono::system_clock::now();
+
+    for(int j=1; j<100000; ++j)
+    {
+        if(algorithmToRun == 1)
+        {
+            vector<thread> threads;
+            for(int i=0; i<16; i++)
+            {
+                threads.push_back(thread(doNothing));
+            }
+            for(auto& thread : threads) thread.join();
+        }
+        else if(algorithmToRun == 2)
+        {
+            #pragma omp parallel for num_threads(16)
+            for(unsigned i=0; i<16; i++)
+            {
+                doNothing();
+            }
+        }
+    }
+
+    auto endTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = endTime - startTime;
+
+    return elapsed_seconds.count();
+}
+
+int main()
+{
+    int cppt = run(1);
+    int ompt = run(2);
+
+    cout<<cppt<<endl;
+    cout<<ompt<<endl;
+
+    return 0;
+}
+
+先来一个最简单的OpenMP并行程序，如果你的机器是双核的话就知道效果了
+//编译选项中加入/Qopenmp
+#include <stdio.h>
+int main(int argc, char* argv[])
+{
+    #pragma omp parallel for
+    for (int i = 0; i < 10; i++ )
+    {
+        printf("i = %d/n", i);
+    }
+    return 0;
+} 
+
+1、fork/join并行执行模式的概念
+OpenMP是一个编译器指令和库函数的集合，主要是为共享式存储计算机上的并行程序设计使用的。
+前 面一篇文章中已经试用了OpenMP的一个Parallel for指令。从上篇文章中我们也可以发现OpenMP并行执行的程序要全部结束后才能执行后面的非并行部分的代码。这就是标准的并行模式 fork/join式并行模式，共享存储式并行程序就是使用fork/join式并行的。
+标准并行模式执行代码的基本思想是，程序开始时只有一个主线程，程序中的串行部分都由主线程执行，并行的部分是通过派生其他线程来执行，但是如果并行部分没有结束时是不会执行串行部分的，如上一篇文章中的以下代码：
+int main(int argc, char* argv[])
+{
+     clock_t t1 = clock();
+#pragma omp parallel for
+     for ( int j = 0; j < 2; j++ ){
+         test();
+     }
+     clock_t t2 = clock();
+     printf("Total time = %d/n", t2-t1);
+ 
+     test();
+     return 0;
+}
+在没有执行完for循环中的代码之前，后面的clock_t t2 = clock();这行代码是不会执行的，如果和调用线程创建函数相比，它相当于先创建线程，并等待线程执行完，所以这种并行模式中在主线程里创建的线程并没有和主线程并行运行。
+2、OpenMP指令和库函数介绍
+下面来介绍OpenMP的基本指令和常用指令的用法，
+在C/C++中，OpenMP指令使用的格式为
+       ＃pragma omp 指令 [子句[子句]…]
+前面提到的parallel for就是一条指令，有些书中也将OpenMP的“指令”叫做“编译指导语句”，后面的子句是可选的。例如：
+#pragma omp parallel private(i, j)
+parallel 就是指令， private是子句
+为叙述方便把包含#pragma和OpenMP指令的一行叫做语句，如上面那行叫parallel语句。
+ 
+OpenMP的指令有以下一些：
+       parallel，用在一个代码段之前，表示这段代码将被多个线程并行执行
+       for，用于for循环之前，将循环分配到多个线程中并行执行，必须保证每次循环之间无相关性。
+       parallel for， parallel 和 for语句的结合，也是用在一个for循环之前，表示for循环的代码将被多个线程并行执行。
+       sections，用在可能会被并行执行的代码段之前
+       parallel sections，parallel和sections两个语句的结合
+       critical，用在一段代码临界区之前
+       single，用在一段只被单个线程执行的代码段之前，表示后面的代码段将被单线程执行。
+       flush，
+barrier，用于并行区内代码的线程同步，所有线程执行到barrier时要停止，直到所有线程都执行到barrier时才继续往下执行。
+atomic，用于指定一块内存区域被制动更新
+master，用于指定一段代码块由主线程执行
+ordered， 用于指定并行区域的循环按顺序执行
+threadprivate, 用于指定一个变量是线程私有的。
+OpenMP除上述指令外，还有一些库函数，下面列出几个常用的库函数：
+       omp_get_num_procs, 返回运行本线程的多处理机的处理器个数。
+       omp_get_num_threads, 返回当前并行区域中的活动线程个数。
+       omp_get_thread_num, 返回线程号
+       omp_set_num_threads, 设置并行执行代码时的线程个数
+omp_init_lock, 初始化一个简单锁
+omp_set_lock， 上锁操作
+omp_unset_lock， 解锁操作，要和omp_set_lock函数配对使用。
+omp_destroy_lock， omp_init_lock函数的配对操作函数，关闭一个锁
+ 
+OpenMP的子句有以下一些
+private, 指定每个线程都有它自己的变量私有副本。
+firstprivate，指定每个线程都有它自己的变量私有副本，并且变量要被继承主线程中的初值。
+lastprivate，主要是用来指定将线程中的私有变量的值在并行处理结束后复制回主线程中的对应变量。
+reduce，用来指定一个或多个变量是私有的，并且在并行处理结束后这些变量要执行指定的运算。
+nowait，忽略指定中暗含的等待
+num_threads，指定线程的个数
+schedule，指定如何调度for循环迭代
+shared，指定一个或多个变量为多个线程间的共享变量
+ordered，用来指定for循环的执行要按顺序执行
+copyprivate，用于single指令中的指定变量为多个线程的共享变量
+copyin，用来指定一个threadprivate的变量的值要用主线程的值进行初始化。
+default，用来指定并行处理区域内的变量的使用方式，缺省是shared
+3、parallel 指令的用法
+parallel 是用来构造一个并行块的，也可以使用其他指令如for、sections等和它配合使用。
+在C/C++中，parallel的使用方法如下：
+#pragma omp parallel [for | sections] [子句[子句]…]
+{
+       //代码
+}
+parallel语句后面要跟一个大括号对将要并行执行的代码括起来。
+void main(int argc, char *argv[]) {
+#pragma omp parallel
+{
+              printf(“Hello, World!/n”);
+}
+}
+执行以上代码将会打印出以下结果
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+可以看得出parallel语句中的代码被执行了四次，说明总共创建了4个线程去执行parallel语句中的代码。
+也可以指定使用多少个线程来执行，需要使用num_threads子句：
+void main(int argc, char *argv[]) {
+#pragma omp parallel num_threads(8)
+{
+              printf(“Hello, World!, ThreadId=%d/n”, omp_get_thread_num() );
+}
+}
+执行以上代码，将会打印出以下结果：
+Hello, World!, ThreadId = 2
+Hello, World!, ThreadId = 6
+Hello, World!, ThreadId = 4
+Hello, World!, ThreadId = 0
+Hello, World!, ThreadId = 5
+Hello, World!, ThreadId = 7
+Hello, World!, ThreadId = 1
+Hello, World!, ThreadId = 3
+从ThreadId的不同可以看出创建了8个线程来执行以上代码。所以parallel指令是用来为一段代码创建多个线程来执行它的。parallel块中的每行代码都被多个线程重复执行。
+和传统的创建线程函数比起来，相当于为一个线程入口函数重复调用创建线程函数来创建线程并等待线程执行完。
+4、for指令的使用方法
+for指令则是用来将一个for循环分配到多个线程中执行。for指令一般可以和parallel指令合起来形成parallel for指令使用，也可以单独用在parallel语句的并行块中。
+#pragma omp [parallel] for [子句]
+      for循环语句
+ 
+先看看单独使用for语句时是什么效果：
+int j = 0;
+#pragma omp for
+     for ( j = 0; j < 4; j++ ){
+         printf(“j = %d, ThreadId = %d/n”, j, omp_get_thread_num());
+     }
+执行以上代码后打印出以下结果
+j = 0, ThreadId = 0
+j = 1, ThreadId = 0
+j = 2, ThreadId = 0
+j = 3, ThreadId = 0
+从结果可以看出四次循环都在一个线程里执行，可见for指令要和parallel指令结合起来使用才有效果：
+如以下代码就是parallel 和for一起结合成parallel for的形式使用的：
+int j = 0;
+#pragma omp parallel for
+     for ( j = 0; j < 4; j++ ){
+         printf(“j = %d, ThreadId = %d/n”, j, omp_get_thread_num());
+     }
+执行后会打印出以下结果：
+j = 0, ThreadId = 0
+j = 2, ThreadId = 2
+j = 1, ThreadId = 1
+j = 3, ThreadId = 3
+可见循环被分配到四个不同的线程中执行。
+ 
+上面这段代码也可以改写成以下形式：
+int j = 0;
+#pragma omp parallel
+{
+#pragma omp for
+     for ( j = 0; j < 4; j++ ){
+         printf(“j = %d, ThreadId = %d/n”, j, omp_get_thread_num());
+     }
+}
+执行以上代码会打印出以下结果：
+j = 1, ThreadId = 1
+j = 3, ThreadId = 3
+j = 2, ThreadId = 2
+j = 0, ThreadId = 0
+ 
+ 
+在一个parallel 块中也可以有多个for语句，如：
+int j;
+#pragma omp parallel
+{
+#pragma omp for
+     for ( j = 0; j < 100; j++ ){
+         …
+     }
+#pragma omp for
+     for (  j = 0; j < 100; j++ ){
+         …
+     }
+…
+}
+ 
+for 循环语句中，书写是需要按照一定规范来写才可以的，即for循环小括号内的语句要按照一定的规范进行书写，for语句小括号里共有三条语句
+for( i=start; i < end; i++)
+ 
+i=start; 是for循环里的第一条语句，必须写成 “变量＝初值” 的方式。如 i＝0
+i < end;是for循环里的第二条语句，这个语句里可以写成以下4种形式之一：
+变量 < 边界值
+变量 <= 边界值
+变量 > 边界值
+变量 >= 边界值
+如 i>10 i< 10   i>=10 i>10 等等
+最后一条语句i++可以有以下9种写法之一
+i++
+++i
+i--
+--i
+i += inc
+i -= inc
+i = i + inc
+i = inc + i
+i = i –inc
+ 
+例如i += 2; i -= 2；i = i + 2；i = i - 2；都是符合规范的写法。
+5 sections和section指令的用法
+section语句是用在sections语句里用来将sections语句里的代码划分成几个不同的段，每段都并行执行。用法如下：
+#pragma omp [parallel] sections [子句]
+{
+   #pragma omp section
+   {
+            代码块
+   } 
+}
+ 
+先看一下以下的例子代码：
+void main(int argc, char *argv)
+{
+#pragma omp parallel sections {
+#pragma omp section
+    printf(“section 1 ThreadId = %d/n”, omp_get_thread_num());
+#pragma omp section
+    printf(“section 2 ThreadId = %d/n”, omp_get_thread_num());
+#pragma omp section
+    printf(“section 3 ThreadId = %d/n”, omp_get_thread_num());
+#pragma omp section
+    printf(“section 4 ThreadId = %d/n”, omp_get_thread_num());
+}
+执行后将打印出以下结果：
+section 1 ThreadId = 0
+section 2 ThreadId = 2
+section 4 ThreadId = 3
+section 3 ThreadId = 1
+ 
+从结果中可以发现第4段代码执行比第3段代码早，说明各个section里的代码都是并行执行的，并且各个section被分配到不同的线程执行。
+ 
+使用section语句时，需要注意的是这种方式需要保证各个section里的代码执行时间相差不大，否则某个section执行时间比其他section过长就达不到并行执行的效果了。
+ 
+上面的代码也可以改写成以下形式：
+void main(int argc, char *argv)
+{
+#pragma omp parallel {
+#pragma omp sections
+{
+#pragma omp section
+       printf(“section 1 ThreadId = %d/n”, omp_get_thread_num());
+#pragma omp section
+       printf(“section 2 ThreadId = %d/n”, omp_get_thread_num());
+}
+#pragma omp sections
+{
+ 
+#pragma omp section
+       printf(“section 3 ThreadId = %d/n”, omp_get_thread_num());
+#pragma omp section
+       printf(“section 4 ThreadId = %d/n”, omp_get_thread_num());
+}
+}
+执行后将打印出以下结果：
+section 1 ThreadId = 0
+section 2 ThreadId = 3
+section 3 ThreadId = 3
+section 4 ThreadId = 1
+ 
+这种方式和前面那种方式的区别是，两个sections语句是串行执行的，即第二个sections语句里的代码要等第一个sections语句里的代码执行完后才能执行。
+ 
+用for语句来分摊是由系统自动进行，只要每次循环间没有时间上的差距，那么分摊是很均匀的，使用section来划分线程是一种手工划分线程的方式，最终并行性的好坏得依赖于程序员。

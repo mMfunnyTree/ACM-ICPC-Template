@@ -1,0 +1,34 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef unsigned long long ull;
+unsigned n, A, B, C;
+unsigned x = A, y = B, z = C;
+unsigned tang(){
+    unsigned t;
+    x ^= x << 16;x ^= x >> 5;x ^= x << 1;t = x;x = y;y = z;z = t ^ x ^ y;
+    return z;
+}
+ull a[10000007];
+
+int main(){
+    int T;
+    scanf("%d", &T);
+    for(int ca = 1; ca <= T; ++ca) {
+        int l=1,r=0;
+        scanf("%u%u%u%u", &n, &A, &B, &C);
+        x = A, y = B, z = C;
+        for(int i=1;i<=n;i++){
+            a[i]=tang();
+        }
+        int m=min(100,(int)n);
+        ull ans=0;
+        nth_element(a+1,a+1+n-m,a+1+n);
+        for(int i=n-m+1;i<=n;i++){
+            for(int j=i+1;j<=n;j++){
+                ans=max(ans,a[i]*a[j]/__gcd(a[i],a[j]));
+            }
+        }
+        printf("Case #%d: %llu\n", ca, ans);
+    }
+    return 0;
+}

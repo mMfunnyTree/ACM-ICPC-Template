@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn=2e5+10;
+int n,m;
+struct node{int op,l,r,k;}q[maxn];
+int a[maxn];
+char op[2];
+int lson[maxn<<7],rson[maxn<<7],c[maxn<<7];
+int T[maxn],S[maxn],use[maxn],tot;
+int cntn;
+int dt[maxn];
+int hs(int x){return lower_bound(dt+1,dt+1+cntn,x)-dt;}
+int build(int l,int r){
+    int rt=tot++;c[rt]=0;
+    if(l!=r){
+        int mid=l+r>>1;
+        lson[rt]=build(l,mid);rson[rt]=build(mid+1,r);
+    }return rt;
+}
+int ins(int rt,int pos,int val){
+    int nrt=tot++,tmp=nrt;
+    int l=1,r=cntn;
+    c[nrt]=c[rt]+val;
+    while(l<r){
+        int mid=l+r>>1;
+        if(pos<=mid){
+            lson[nrt]=tot++;
+            rson[nrt]=rson[rt];
+            nrt=lson[nrt];
+            rt=lson[rt];
+            r=mid;
+        }
+        else{
+            lson[nrt]=lson[rt];
+            rson[nrt]=tot++;
+            nrt=rson[nrt];
+            rt=rson[rt];
+            l=mid+1;
+        }
+        c[nrt]=c[rt]+val;
+    }return tmp;
+}
+inline int lowbit(int x){return x&(-x);}
+int sum(int x){
+    int ans=0;
+    while(x){
+        ans+=c[lson[use[x]]];x-=lowbit(x);
+    }return ans;
+}
+void update(int x,int pos,int val){
+    while(x<=n){
+        S[x]=ins(S[x],pos,val);x+=lowbit(x);
+    }
+}
+int query(int L,int R,int k){
+    int lrt=T[L-1];
+    int rrt=T[R];
+    int l=1,r=cntn;
+    for(int i=L-1;i;i-=lowbit(i))use[i]=S[i];
+    for(int i=R;i;i-=lowbit(i))use[i]=S[i];
+    while(l<r){
+        int mid=l+r>>1;
+        int tmp=sum(R)-sum(L-1)+c[lson[rrt]]-c[lson[lrt]];
+        if(tmp>=k){
+            r=mid;
+            for(int i=L-1;i;i-=lowbit(i))use[i]=lson[use[i]];
+            for(int i=R;i;i-=lowbit(i))use[i]=lson[use[i]];
+            lrt=lson[lrt];rrt=lson[rrt];
+        }
+        else{
+            l=mid+1;k-=tmp;
+            for(int i=L-1;i;i-=lowbit(i))use[i]=rson[use[i]];
+            for(int i=R;i;i-=lowbit(i))use[i]=rson[use[i]];
+            lrt=rson[lrt];rrt=rson[rrt];
+        }
+    }return l;
+}
+int main(){
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;i++)scanf("%d",a+i),dt[++cntn]=a[i];
+    for(int i=1;i<=m;i++){
+        scanf("%s",op);
+        if(op[0]=='Q')q[i].op=0,scanf("%d%d%d",&q[i].l,&q[i].r,&q[i].k);
+        else scanf("%d%d",&q[i].l,&q[i].k),dt[++cntn]=q[i].k,q[i].op=1;
+    }
+    sort(dt+1,dt+1+cntn);cntn=unique(dt+1,dt+1+cntn)-dt-1;
+    T[0]=build(1,cntn);
+    for(int i=1;i<=n;i++)T[i]=ins(T[i-1],hs(a[i]),1),S[i]=T[0];
+    for(int i=1;i<=m;i++){
+        if(q[i].op){
+            update(q[i].l,hs(a[q[i].l]),-1);
+            update(q[i].l,hs(q[i].k),1);
+            a[q[i].l]=q[i].k;
+        }
+        else printf("%d\n",dt[query(q[i].l,q[i].r,q[i].k)]);
+    }
+    return 0;
+}

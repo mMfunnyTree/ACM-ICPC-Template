@@ -1,0 +1,109 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid  int mid = (l+r)>>1
+#define maxn 100555
+
+int n,m;
+int cnt=0;
+struct node
+{
+    int l,r,q;
+}p[maxn];
+
+int sum[maxn<<2],cur[maxn<<2];
+
+void push_up(int rt)
+{
+    sum[rt] = sum[rt<<1] & sum[rt<<1|1];
+}
+
+void push_down(int rt)
+{
+    if(cur[rt])
+    {
+        cur[rt<<1] |=cur[rt];
+		cur[rt<<1|1] |= cur[rt];
+		sum[rt<<1] |= cur[rt];
+		sum[rt<<1|1] |= cur[rt];
+		cur[rt] = 0;
+    }
+}
+
+void update(int ll,int rr,int val,int l,int r,int rt)
+{
+    intmid;
+    if(ll<=l && rr>=r)
+    {
+        sum[rt] |= val ;
+        cur[rt] |= val ;
+        return ;
+    }
+    push_down(rt);
+    if(ll<=mid)
+        update(ll,rr,val,lson);
+    if(rr>mid)
+        update(ll,rr,val,rson);
+    push_up(rt);
+}
+
+int query(int ll,int rr,int l,int r,int rt)
+{
+    intmid;
+    if(ll<=l && rr>=r)
+    {
+        return sum[rt];
+    }
+    push_down(rt);
+    int ret=0,flag=0;
+    if(ll<=mid)
+    {
+        ret=query(ll,rr,lson);
+        flag=1;
+    }
+    if(rr>mid)
+    {
+        if(flag)
+            ret&=query(ll,rr,rson);
+        else
+            ret =query(ll,rr,rson);
+    }
+    push_up(rt);
+    return ret;
+}
+
+void print(int l,int r,int rt)
+{
+    if(l==r)
+    {
+        printf("%d ",sum[rt]);
+        return ;
+    }
+    push_down(rt);
+    intmid;
+    if(l<=mid)print(lson);
+    if(r>mid)print(rson);
+    push_up(rt);
+}
+
+int main()
+{
+    cin>>n>>m;
+    for(int i=1;i<=m;i++)
+    {
+        scanf("%d%d%d",&p[i].l,&p[i].r,&p[i].q);
+        update(p[i].l,p[i].r,p[i].q,1,n,1);
+    }
+    for(int i=1;i<=m;i++)
+    {
+        if(query(p[i].l,p[i].r,1,n,1)!=p[i].q)break;
+        cnt++;
+    }
+    if(cnt<m)
+        return cout<<"NO",0;
+    else
+        return cout<<"YES\n",print(1,n,1),0;
+}

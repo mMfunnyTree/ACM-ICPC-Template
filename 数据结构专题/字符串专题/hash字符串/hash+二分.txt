@@ -1,0 +1,82 @@
+#include <cstdio>
+#include <cstring>
+using namespace std;
+const int HASH = 12345;
+const int MAXN = 20010;
+const int SEED = 1333;
+unsigned long long P[MAXN];
+unsigned long long S[MAXN];
+int A[MAXN];
+int n;
+struct HASHMAP
+{
+    int head[HASH],next[MAXN],size;
+    unsigned long long state[MAXN];
+    int f[MAXN];
+    void init()
+    {
+        size = 0;
+        memset(head,-1,sizeof(head));
+    }
+    int insert(unsigned long long val,int _id)
+    {
+        int h = val%HASH;
+        for(int i = head[h]; i != -1;i = next[i])
+            if(val == state[i])
+            {
+                return f[i];
+            }
+        f[size] = _id;
+        state[size] = val;
+        next[size] = head[h];
+        head[h] = size++;
+        return f[size-1];
+    }
+};
+HASHMAP H;
+
+bool check(int l)//判断是否存在长度l
+{
+    H.init();
+    for(int i = l;i < n;i++)
+        if(H.insert(S[i] - S[i-l]*P[l],i) < i-l)
+            return true;
+    return false;
+}
+
+int main()
+{
+    P[0] = 1;
+    for(int i = 1;i < MAXN;i++)
+        P[i] = P[i-1] * SEED;
+        
+    while(scanf("%d",&n) && n)
+    {
+        for(int i = 1;i <= n;i++)
+            scanf("%d",&A[i]);
+            
+        for(int i = 1;i < n; i++)//转化成相邻两数的差，方便比较
+            A[i] = A[i+1] - A[i];
+            
+        S[0] = 0;
+        for(int i = 1;i < n;i++)
+            S[i] = S[i-1]*SEED + A[i];//Si = 从A1到Ai的hash值
+            
+        int ans = 0;
+        int l = 4, r = n-1;//最短为5，最长为n
+        while(l <= r)
+        {
+            int mid = (l + r)/2;
+            if(check(mid))
+            {
+                ans = mid;
+                l = mid+1;
+            }
+            else r = mid-1;
+        }
+        if(ans < 4)ans = -1;
+        ans++;
+        printf("%d\n",ans);
+    }
+    return 0;
+}

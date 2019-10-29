@@ -1,0 +1,168 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define lson l,m,rt<<1
+#define rson m+1,r,rt<<1|1
+#define mid int m = (l + r) >> 1
+#define ll  unsigned long long
+const ll inf = 18446744073709551615;
+const int M = 2e5+10;
+
+vector<int>g[M];
+int n,cnt1,cnt,a[M];
+int son[M],fa[M],head[M],siz[M],top[M],dep[M],tid[M];
+ll sum[M<<2],add[M<<2],mul[M<<2];
+
+void dfs1(int u,int faz,int deep){
+     dep[u] = deep;
+     fa[u] = faz;
+     siz[u] = 1;
+     for(int i = 0;i < g[u].size();i++){
+        int v = g[u][i];
+        //cout<<v<<" ";
+        if(v != fa[u]){
+            dfs1(v,u,deep+1);
+            siz[u] += siz[v];
+            if(son[u] == -1||siz[v] > siz[son[u]])
+                son[u] = v;
+        }
+     }
+}
+
+void dfs2(int u,int t){
+    top[u] = t;
+    tid[u] = ++cnt;
+    if(son[u] == -1) return;
+    dfs2(son[u],t);
+    for(int i = 0;i<g[u].size();i++){
+        int v = g[u][i];
+        if(v != son[u]&&v != fa[u])
+            dfs2(v,v);
+    }
+}
+
+void pushup(int rt){
+    sum[rt] = sum[rt<<1] + sum[rt<<1|1];
+}
+
+void pushdown(int m,int rt){
+    add[rt<<1] = add[rt<<1]*mul[rt] + add[rt];
+    add[rt<<1|1] = add[rt<<1|1]*mul[rt]+add[rt];
+    mul[rt<<1] = mul[rt<<1]*mul[rt];
+    mul[rt<<1|1] = mul[rt<<1|1]*mul[rt];
+    sum[rt<<1] = sum[rt<<1]*mul[rt] + add[rt]*(m-(m>>1));
+    sum[rt<<1|1] = sum[rt<<1|1]*mul[rt]+add[rt]*(m>>1);
+    add[rt] = 0; mul[rt] = 1;
+}
+
+void build(int l,int r,int rt){
+    add[rt] = 0; mul[rt] = 1;
+    if(l == r){
+        sum[rt] = 0;
+        return;
+    }
+    mid;
+    build(lson); build(rson);
+    pushup(rt);
+}
+
+void update(int L,int R,ll c,int v,int l,int r,int rt){
+    if(L <= l&&R >= r){
+        if(v == 1){
+            sum[rt] = sum[rt]*c;
+            add[rt] = add[rt]*c;
+            mul[rt] = mul[rt]*c;
+        }
+        else if(v == 2){
+            sum[rt] = sum[rt] + (ll)c*(r-l+1);
+            add[rt] = add[rt]+c;
+        }
+        else if(v == 3){
+            sum[rt] = inf*sum[rt] + (r-l+1)*inf;
+            add[rt] = add[rt]*inf+inf;
+            mul[rt] *= inf;
+        }
+        return;
+    }
+    pushdown(r-l+1,rt);
+    int m = (l + r) >> 1;
+    if(L <= m) update(L,R,c,v,lson);
+    if(R > m) update(L,R,c,v,rson);
+    pushup(rt);
+}
+
+ll query(int L,int R,int l,int r,int rt){
+    if(L <= l&&R >= r){
+        return sum[rt];
+    }
+    mid;
+    pushdown(r-l+1,rt);
+    ll ret = 0;
+    if(L <= m) ret += query(L,R,lson);
+    if(R > m)  ret += query(L,R,rson);
+    return ret;
+}
+
+void cover(int x,int y,ll c,int v){
+    int fx = top[x],fy = top[y];
+    while(fx!=fy){
+        if(dep[fx] < dep[fy]) swap(fx,fy),swap(x,y);
+       update(tid[fx],tid[x],c,v,1,n,1);
+        x = fa[fx];fx = top[x];
+    }
+    if(dep[x] < dep[y]) swap(x,y);
+    update(tid[y],tid[x],c,v,1,n,1);
+}
+
+ll ask(int x,int y){   //求两结点路径上的权值和
+    int fx = top[x],fy = top[y];
+    ll ans = 0;
+    while(fx != fy){
+        if(dep[fx] < dep[fy]) swap(fx,fy),swap(x,y);
+        ans += query(tid[fx],tid[x],1,n,1);
+        x = fa[fx]; fx = top[x];
+    }
+    ans += (dep[x] > dep[y])?query(tid[y],tid[x],1,n,1):query(tid[x],tid[y],1,n,1);
+    return ans;
+}
+
+void init(){
+    cnt = cnt1 = 0;
+    memset(son,-1,sizeof(son));
+    dep[1] = 0; fa[1] = 0; siz[0] = 0;
+}
+
+int main()
+{
+    int x,q,op,l,r;
+    ll c;
+    while(scanf("%d",&n)!=EOF){
+        init();
+       // cout<<inf<<endl;
+        for(int i = 2;i <= n;i ++){
+            scanf("%d",&x);
+            g[x].push_back(i);
+        }
+        dfs1(1,0,1);
+        dfs2(1,1);
+        build(1,n,1);
+        scanf("%d",&q);
+        while(q--){
+            scanf("%d",&op);
+            if(op == 1||op == 2){
+                scanf("%d%d%llu",&l,&r,&c);
+                cover(l,r,c,op);
+            }
+            else if(op == 3){
+                scanf("%d%d",&l,&r);
+                cover(l,r,0,op);
+            }
+            else {
+                scanf("%d%d",&l,&r);
+                printf("%llu\n",ask(l,r));
+            }
+        }
+        for(int i = 1;i <= n;i ++)
+            g[i].clear();
+    }
+    return 0;
+}

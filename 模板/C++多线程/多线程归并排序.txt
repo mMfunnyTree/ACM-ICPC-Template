@@ -1,0 +1,70 @@
+#include <iostream>
+using namespace std;
+#include <Windows.h>
+#include <ctime>
+#include <random>
+#include <thread>
+#include <vector>
+
+int *a;
+int N;
+const int MINLEN = 120000;
+
+void random_test(int begin, int end) {
+    srand((unsigned)time(NULL) + begin);
+    for (int i = begin; i < end; ++i) {
+        a[i] = rand() % N;
+    }
+}
+
+void sort(int s, int e) {
+    if (s >= e)
+        return;
+    int i = s, j = e, k = a[s];
+    while (i < j) {
+        while (i < j && a[j] >= k)
+            --j;
+        if (i < j) {
+            a[i] = a[j];
+        }
+        while (i < j && a[i] <= k)
+            ++i;
+        if (i < j) {
+            a[j] = a[i];
+        }
+    }
+    a[i] = k;
+    vector<thread> vt;
+    if (i - s >= MINLEN)vt.push_back(thread(sort, s, i - 1));
+    else sort(s, i - 1);
+
+    if (e - i >= MINLEN)vt.push_back(thread(sort, i + 1, e));
+    else sort(i + 1, e);
+
+    for (int i = 0; i < vt.size(); ++i) vt[i].join();
+}
+
+int main() {
+    vector<thread> vt;
+    N = 1000000;
+    a = new int[N];
+    int T = 5;
+
+    int st, et;
+    st = clock();
+    for (int i = 0; i < T; ++i)
+        vt.push_back(thread(random_test, i * N / T, (i + 1) * N / T));
+    for (int i = 0; i < T; ++i)
+        vt[i].join();
+    et = clock();
+    double ct = (et - st) / 1000.0;
+    st = clock();
+    sort(0, N-1);
+    et = clock();
+    /*for (int i = 0; i < N; ++i) cout << a[i] << " ";
+    cout << endl;*/
+    cout << "Sorting uses " << (et - st) / 1000.0 << " second(s)" << endl;
+
+    cout << "Creating the random array uses " << ct << " second(s)" << endl;
+    system("pause");
+}

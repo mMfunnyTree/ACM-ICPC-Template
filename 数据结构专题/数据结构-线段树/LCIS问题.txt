@@ -1,0 +1,95 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define intmid int mid=(l+r)>>1
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define maxn 100005
+
+int ls[maxn<<2],rs[maxn<<2],lcis[maxn<<2];
+int num[maxn];
+int n,q,a,b;
+char op[2];
+
+void push_up(int l,int r,int rt)
+{
+    ls[rt]=ls[rt<<1];
+    rs[rt]=rs[rt<<1|1];
+    lcis[rt] = max(lcis[rt<<1],lcis[rt<<1|1]);
+    intmid;
+    if(num[mid]<num[mid+1])
+    {
+        lcis[rt]=max(lcis[rt],rs[rt<<1]+ls[rt<<1|1]);
+        if(ls[rt]==mid-l+1)
+        {
+            ls[rt]+=ls[rt<<1|1];
+        }
+        if(rs[rt]==r-mid)
+        {
+            rs[rt]+=rs[rt<<1];
+        }
+    }
+}
+
+void build(int l,int r,int rt)
+{
+    if(l==r)
+    {
+        ls[rt]=rs[rt]=lcis[rt]=1;
+        scanf("%d",&num[l]);
+        return ;
+    }
+    intmid;
+    build(lson);
+    build(rson);
+    push_up(l,r,rt);
+}
+
+void update(int p,int val,int l,int r,int rt)
+{
+    if(l==r)
+    {
+        num[l]=val;
+        return;
+    }
+    intmid;
+    if(p<=mid)
+        update(p,val,lson);
+    else update(p,val,rson);
+    push_up(l,r,rt);
+}
+
+int query(int ll,int rr,int l,int r,int rt)
+{
+    if(ll<=l && rr>=r)
+        return lcis[rt];
+    intmid;
+    int ret=0;
+    if(num[mid]<num[mid+1])
+        ret = min(rr,mid+ls[rt<<1|1])-max(ll,mid+1-rs[rt<<1])+1;
+    if(ll<=mid)
+        ret = max(ret,query(ll,rr,lson));
+    if(rr>mid)
+        ret = max(ret,query(ll,rr,rson));
+    return ret;
+}
+
+int main()
+{
+    int t;cin>>t;
+    while(t--)
+    {
+        scanf("%d%d",&n,&q);
+        build(0,n-1,1);
+        int a,b;
+        while(q--)
+        {
+            scanf("%s %d%d",op,&a,&b);
+            if(op[0]=='U')
+                update(a,b,0,n-1,1);
+            else
+                printf("%d\n",query(a,b,0,n-1,1));
+        }
+    }
+    return 0;
+}

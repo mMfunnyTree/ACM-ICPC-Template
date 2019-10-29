@@ -1,0 +1,21 @@
+int find(int a)
+{
+    return (a==f[a])?a:f[a]=find(f[a]);
+}
+
+void check(int a,int b)
+{
+    int fa=find(a);
+    int fb=find(b);
+    if(fa!=fb)
+    {
+        f[fa]=fb;
+    }
+}
+
+1.find函数根据情况选择要不要更新父亲
+
+2.check函数根据情况，是把儿子相连，还是把最大的父亲相连
+
+3.一个集合内有多种状态时，用val值区分
+

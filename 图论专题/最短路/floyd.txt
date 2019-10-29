@@ -1,0 +1,56 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <map>
+#include <string>
+#include <cmath>
+using namespace std;
+const int maxn = 50;
+const int Inf = 100000000;
+double m[maxn][maxn];
+
+int Floyd(int n)
+{
+	for(int k = 1; k <= n; k++)
+		for(int i = 1; i <= n; i++)
+			for(int j = 1; j <= n; j++)
+				m[i][j] = max(m[i][k] * m[k][j], m[i][j]);
+	for(int i = 1;i <= n; i++)
+		if(m[i][i] > 1)
+			return 1;
+	return 0;
+}
+
+int main()
+{
+	int n;
+	int ca = 1;
+	while(~scanf("%d", &n) && n != 0)
+	{
+		string str;
+		map<string ,int> mp;
+		memset(m, 0, sizeof(m));
+		for(int i = 1; i <= n; i++)
+		{
+			cin >> str;
+			mp[str] = i;
+		}
+		int m1;
+		cin >> m1;
+		for(int i = 1; i <= m1; i++)
+		{
+			string str1, str2;
+			double c;
+			cin >> str1 >> c >> str2;
+			int a = mp[str1];
+			int b = mp[str2];
+			m[a][b] = c;
+		}
+		if(Floyd(n))
+			printf("Case %d: Yes\n", ca++);
+		else
+			printf("Case %d: No\n", ca++);
+		
+	}
+	return 0;
+} 

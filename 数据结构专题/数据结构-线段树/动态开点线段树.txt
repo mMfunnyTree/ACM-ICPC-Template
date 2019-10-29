@@ -1,0 +1,73 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn = 2e5+10;
+
+int n;
+pair<int,int> p[maxn];
+bool cmp(pair<int,int >a,pair<int,int> b){
+    if(a.second==b.second)return a.first<b.first;
+    return a.second<b.second;
+}
+
+struct node{
+    int l,r,v,ls,rs;
+    node(int l=0,int r=0,int v=0,int ls=0,int rs=0):l(l),r(r),v(v),ls(ls),rs(rs){}
+}seg[maxn<<2];
+int cnt,ans;
+
+int f;
+void solve(int L,int R,int rt){
+    if(L<=seg[rt].l && R>=seg[rt].r){
+        if(seg[rt].r-seg[rt].l==0){seg[rt].v=1;f=1;ans++;return;}
+        if(!seg[rt].ls){
+            seg[rt].ls=++cnt;
+            seg[cnt]=node(seg[rt].l,seg[rt].l+seg[rt].r>>1);
+        }
+        if(seg[seg[rt].ls].r - seg[seg[rt].ls].l + 1 > seg[seg[rt].ls].v)solve(L,R,seg[rt].ls);
+        else{
+            if(!seg[rt].rs){
+                seg[rt].rs=++cnt;
+                seg[cnt]=node((seg[rt].l+seg[rt].r)/2+1,seg[rt].r);
+            }
+            if(seg[seg[rt].rs].r - seg[seg[rt].rs].l + 1 > seg[seg[rt].rs].v)solve(L,R,seg[rt].rs);
+        }
+        seg[rt].v=seg[seg[rt].ls].v + seg[seg[rt].rs].v;
+        return;
+    }
+    seg[rt].v=seg[seg[rt].ls].v + seg[seg[rt].rs].v;if(f)return;
+    if(L<=(seg[rt].l+seg[rt].r)/2){
+        if(!seg[rt].ls){
+            seg[rt].ls=++cnt;
+            seg[cnt]=node(seg[rt].l,seg[rt].l+seg[rt].r>>1);
+        }
+        if(seg[seg[rt].ls].r - seg[seg[rt].ls].l + 1 > seg[seg[rt].ls].v){
+            solve(L,R,seg[rt].ls);
+            seg[rt].v=seg[seg[rt].ls].v + seg[seg[rt].rs].v;
+            if(f)return;
+        }
+    }
+    if(R>(seg[rt].l+seg[rt].r)/2){
+        if(!seg[rt].rs){
+            seg[rt].rs=++cnt;
+            seg[cnt]=node((seg[rt].l+seg[rt].r)/2+1,seg[rt].r);
+        }
+        if(seg[seg[rt].rs].r - seg[seg[rt].rs].l + 1 > seg[seg[rt].rs].v)solve(L,R,seg[rt].rs);
+    }
+    seg[rt].v=seg[seg[rt].ls].v + seg[seg[rt].rs].v;
+}
+
+int main(){
+    int t;cin>>t;
+    while(t--){
+        seg[1]=node(1,1e9);
+        cnt=1;ans=0;
+        scanf("%d",&n);
+        for(int i=1;i<=n;i++)scanf("%d%d",&p[i].first,&p[i].second);
+        sort(p+1,p+1+n,cmp);
+        for(int i=1;i<=n;i++){
+            f=0;solve(p[i].first,p[i].second,1);
+        }
+        cout<<ans<<endl;
+    }
+    return 0;
+}

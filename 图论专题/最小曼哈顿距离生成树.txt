@@ -1,0 +1,89 @@
+#include<algorithm>
+#include<cstdio>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+const int inf  = 1e9+7;
+struct point{
+    int x,y,id;
+    bool operator < (const point& a)const{return a.x==x?y<a.y:x<a.x;}
+}p[maxn];
+
+struct node{
+    int u,v,w;
+    bool operator < (const node&a)const{return w<a.w;}
+}edge[maxn<<3];
+
+struct Bit{//树状数组维护区间最小值
+    int pos,w;
+    void init(){pos=-1;w=inf;}
+}bit[maxn];
+
+int fa[maxn],a[maxn],b[maxn];//a和b用于离散化
+int n,m,k,cnt;
+int find(int x){return x==fa[x]?x:fa[x] = find(fa[x]);}
+void add(int u,int v,int w){
+    edge[++cnt] = {u,v,w};
+}
+int lowbit(int x){return x&-x;}
+int dist(point a,point b){return abs(a.x-b.x)+abs(a.y-b.y);}
+int query(int x,int m){//查询区间p[i].x+p[i].y最小值
+    int minx = inf,pos=-1;
+    for(int i=x;i<=m;i+=lowbit(i)){
+        if(minx>bit[i].w){
+            minx=bit[i].w;pos=bit[i].pos;
+        }
+    }return pos;
+}
+void update(int x,int y,int pos){//维护区间p[i].x+p[i].y最小值
+    for(int i=x;i>=1;i-=lowbit(i)){
+        if(y<bit[i].w){
+            bit[i].w=y;bit[i].pos=pos;
+        }
+    }
+}
+void solve(){
+    int tot=0;
+    sort(edge+1,edge+1+cnt);
+    for(int i=1;i<=n;++i)fa[i]=i;
+    for(int i=1;i<=cnt;++i){
+        int fu=find(edge[i].u),fb = find(edge[i].v);
+        if(fu!=fb){
+            ++tot;fa[fu]=fb;
+        }
+        if(tot==k){
+            printf("%d\n",edge[i].w);
+            return;
+        }
+    }
+}
+void caledge(){
+    sort(p+1,p+1+n);
+    for(int i=1;i<=n;++i)a[i]=b[i]=p[i].y-p[i].x;
+    sort(b+1,b+1+n);
+    m=unique(b+1,b+1+n)-b;//去重
+    for(int i=1;i<=m;++i){//初始化
+        bit[i].init();
+    }
+    for(int i=n;i>=1;--i){
+        int x= lower_bound(b+1,b+1+m,a[i])-b+1;
+        int pos= query(x,m);
+        if(pos!=-1)add(p[i].id,p[pos].id,dist(p[i],p[pos]));
+        update(x,p[i].x+p[i].y,i);
+    }
+}
+int main(){
+    scanf("%d%d",&n,&k);
+    k=n-k;
+    for(int i=1;i<=n;++i)scanf("%d%d",&p[i].x,&p[i].y),p[i].id=i;
+    for(int j=0;j<4;++j){
+        if(j==1||j==3){
+            for(int i=1;i<=n;++i)swap(p[i].x,p[i].y);
+        } else if(j==2){
+            for(int i=1;i<=n;++i)p[i].x=-p[i].x;
+        }
+        caledge();
+    }
+    solve();
+    return 0;
+}

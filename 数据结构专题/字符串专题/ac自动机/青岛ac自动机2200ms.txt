@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define maxn 100005
+#define maxm 100005
+
+struct trie {
+    int next[maxn][26], fail[maxn], end[maxn];
+    int root, cnt;
+    int new_node () {
+        memset (next[cnt], -1, sizeof next[cnt]);
+        end[cnt++] = 0;
+        return cnt-1;
+    }
+    void init () {
+        cnt = 0;
+        root = new_node ();
+    }
+    void insert (char *buf) {//字典树插入一个单词
+        int len = strlen (buf);
+        int now = root;
+        for (int i = 0; i < len; i++) {
+            int id = buf[i]-'a';
+            if (next[now][id] == -1) {
+                next[now][id] = new_node ();
+            }
+            now = next[now][id];
+        }
+        end[now]++;
+    }
+    void build () {//构建fail指针
+        queue <int> q;
+        fail[root] = root;
+        for (int i = 0; i < 26; i++) {
+            if (next[root][i] == -1) {
+                next[root][i] = root;
+            }
+            else {
+                fail[next[root][i]] = root;
+                q.push (next[root][i]);
+            }
+        }
+        while (!q.empty ()) {
+            int now = q.front (); q.pop ();
+            for (int i = 0; i < 26; i++) {
+                if (next[now][i] == -1) {
+                    next[now][i] = next[fail[now]][i];
+                }
+                else {
+                    fail[next[now][i]] = next[fail[now]][i];
+                    q.push (next[now][i]);
+                }
+            }
+        }
+    }
+    int query (char *buf) {
+        int len = strlen (buf);
+        int now = root;
+        int res = 0;
+        for (int i = 0; i < len; i++) {
+            int id = buf[i]-'a';
+            now = next[now][id];
+            int tmp = now;
+            while (tmp != root) {
+                if (end[tmp]) {
+                    res += end[tmp];
+                    end[tmp] = 0;
+                }
+                tmp = fail[tmp];//沿着失配边走
+            }
+        }
+        return res;
+    }
+}ac;
+
+int n;
+char t[maxm], str[maxm];
+string s[maxm];
+
+int main () {
+    //freopen("in.txt", "r", stdin);
+    int T;
+    scanf ("%d", &T);
+    while (T--) {
+        scanf ("%d", &n);
+        ac.init ();
+        int maxlen = 0, id = -1;
+        for (int i = 1; i <= n; i++) {
+            scanf("%s", t);
+            //cout << t << endl;
+            s[i] = (string)t;
+            ac.insert(t);
+            int len = strlen(t);
+            if (len > maxlen) {
+                id = i;
+                maxlen = len;
+            }
+        }
+        bool flag = true;
+        for (int i = 1; i <= n; i++) {
+            if ((int)s[i].length() == maxlen) {
+                if (s[i] != s[id]) {
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        if (!flag) {
+            puts("No");
+            continue;
+        }
+        ac.build ();
+        strcpy(str, s[id].c_str());
+        int ans = ac.query(str);
+        if (ans >= n) puts(str);
+        else puts("No");
+    }
+    return 0;
+}

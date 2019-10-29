@@ -1,0 +1,77 @@
+/**统计出现次数在[A,B]之间的串的个数**/
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 2e5+1000;
+char s[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+
+int sum[maxn<<1],topo[maxn<<1];
+int r[maxn<<1];
+
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+
+inline void toposort(){
+    for(int a=1;a<=deep[last];a++)sum[a]=0;
+    for(int a=1;a<=cnt;a++)sum[deep[a]]++;
+    for(int a=1;a<=deep[last];a++)sum[a]+=sum[a-1];
+    for(int a=1;a<=cnt;a++)topo[sum[deep[a]]--]=a;
+}
+
+inline void pre(){
+    cnt=0;
+    root=last=newnode(0);
+    memset(r,0,sizeof r);
+}
+int A,B;
+int main(){
+    while(scanf("%s%d%d",s,&A,&B)!=EOF){
+    pre();
+    memset(son[1],0,sizeof son[1]);
+    int len=strlen(s);
+    for(int a=0;a<len;a++){
+        sam(s[a]-'A');
+    }
+    toposort();
+    int tmp=root;
+    for(int a=0;a<len;a++){
+        tmp=son[tmp][s[a]-'A'];
+        r[tmp]=1;
+    }
+    /**将所有状态的right集合大小赋值为1**/
+    for(int a=cnt;a>=1;a--)r[pa[topo[a]]] += r[topo[a]];
+    long long ans=0;
+    for(int a=cnt;a>=1;a--){
+        if(r[topo[a]]>=A && r[topo[a]]<=B){
+            ans+=deep[topo[a]] - deep[pa[topo[a]]];
+            /**right集合中不同子串个数为deep[p] - deep[pa[p]]]**/
+        }
+    }
+    cout<<ans<<endl;
+    }
+    return 0;
+}

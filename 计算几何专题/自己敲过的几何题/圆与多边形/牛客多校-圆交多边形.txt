@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+using namespace std;
+const double eps = 1e-8;
+const double pi  = acos(-1.0);
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+}p[1005];
+
+typedef point Vector;
+Vector operator - ( Vector a, Vector b) { return Vector( a.x-b.x, a.y-b.y);}
+double cross( Vector a, Vector b) { return a.x*b.y-a.y*b.x;}
+double dot( Vector a, Vector b) { return (a.x*b.x+a.y*b.y);}
+double length( Vector a) { return sqrt(dot(a,a));}
+double sqr( double x) { return x*x;}
+
+double areatxc(point A,point B,point C,double r){
+    double a, b, c, x, y;
+    double s = 0.5*cross( A-C, B-C);
+    a = length( B-C);
+    b = length( A-C);
+    c = length( A-B);
+
+    if( a <= r && b <= r) return s;
+    else if( a < r && b >= r) {
+        x = (dot(A-B,C-B)+sqrt(c*c*r*r-sqr(cross(A-B,C-B))))/c;
+        return asin(s*(c-x)*2.0/c/b/r)*r*r*0.5+s*x/c;
+    }
+    else if( a >= r && b < r) {
+        y = (dot(B-A,C-A)+sqrt(c*c*r*r-sqr(cross(B-A,C-B))))/c;
+        return asin(s*(c-y)*2.0/c/a/r)*r*r*0.5+s*y/c;
+    }
+    else {
+        if( fabs(2.0*s)>=r*c || dot(B-A,C-A)<=0 || dot(A-B,C-B)<=0) {
+            if( dot(A-C,B-C)<0) {
+                if( cross(A-C,B-C)<0) return (-pi-asin(s*2.0/a/b))*r*r*0.5;
+                else return (pi-asin(s*2.0/a/b))*r*r*0.5;
+            }
+            else return asin(s*2.0/a/b)*r*r*0.5;
+        }
+        else {
+            x = (dot(A-B,C-B)+sqrt(c*c*r*r-sqr(cross(A-B,C-B))))/c;
+            y = (dot(B-A,C-A)+sqrt(c*c*r*r-sqr(cross(B-A,C-A))))/c;
+            return (asin(s*(1-x/c)*2/r/b)+asin(s*(1-y/c)*2/r/a))*r*r*0.5+s*((y+x)/c-1);
+        }
+    }
+}
+
+double check(int n,point o,double r){
+    double ret=0;
+    for(int i=0;i<n;i++)ret+=areatxc(p[i],p[i+1],o,r);
+    return fabs(ret);
+}
+
+int main(){
+    int n,m;
+    while(scanf("%d",&n)!=EOF){
+        for(int i=0;i<n;i++)scanf("%lf%lf",&p[i].x,&p[i].y);
+        p[n]=p[0];
+        double area=0;
+        for(int i=0;i<n;i++){
+            area+=cross(p[i],p[i+1]);/**叉积求多边形面积**/
+        }
+        area=fabs(area)*0.5;
+        double p,q;
+        point o;
+        scanf("%d",&m);
+        while(m--){
+            scanf("%lf%lf%lf%lf",&o.x,&o.y,&p,&q);
+            p=q-p;
+            double l=0,r=1e7;
+            for(int i=0;i<60;i++){
+                double mid = (l+r)*0.5;
+                if(check(n,o,mid)*q > area*p)r=mid;
+                else l=mid;
+            }
+            printf("%.10f\n",l);
+        }
+    }
+    return 0;
+}
+/**圆与多边形面积交**/

@@ -1,0 +1,59 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn = 2e6+10;
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid int mid=l+r>>1
+int lv[maxn<<2],rv[maxn<<2],mv[maxn<<2];
+int n;
+int a[maxn];
+int last[maxn];
+void push_up(int l,int r,int rt){
+    intmid;
+    if(lv[rt<<1]==mid-l+1)lv[rt]=lv[rt<<1]+lv[rt<<1|1];
+    else lv[rt]=lv[rt<<1];
+    if(rv[rt<<1|1]==r-mid)rv[rt]=rv[rt<<1|1]+rv[rt<<1];
+    else rv[rt]=rv[rt<<1|1];
+    mv[rt]=max(mv[rt<<1],mv[rt<<1|1]);
+    mv[rt]=max(mv[rt],rv[rt<<1]+lv[rt<<1|1]);
+}
+void build(int l,int r,int rt){
+    if(!lv[rt]&&!rv[rt]&&!mv[rt])return;
+    if(l==r){
+        lv[rt]=rv[rt]=mv[rt]=0;return;
+    }intmid;
+    build(lson);build(rson);push_up(l,r,rt);
+}
+void update(int p,int v,int l,int r,int rt){
+    if(p<1||p>n)return;
+    if(l==r){
+        lv[rt]=rv[rt]=mv[rt]=v;return;
+    }intmid;
+    if(p<=mid)update(p,v,lson);
+    else update(p,v,rson);
+    push_up(l,r,rt);
+}
+int main(){
+    int T;read(T);
+    while(T--){
+        read(n);
+        for(int i=0;i<=n;i++)last[i]=0;
+        build(1,n,1);
+        int posl=1;
+        int ans=0;
+        for(int i=1;i<=n;i++){
+            read(a[i]);
+            if(ans==n)continue;
+            if(last[a[i]]>=posl){
+                while(last[a[i]]>=posl){
+                    update(a[posl],0,1,n,1);posl++;
+                }
+            }
+            update(a[i],1,1,n,1);
+            last[a[i]]=i;
+            ans=max(ans,mv[1]);
+        }
+        print(ans,'\n');
+    }
+    return 0;
+}

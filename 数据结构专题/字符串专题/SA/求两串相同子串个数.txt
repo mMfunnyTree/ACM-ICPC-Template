@@ -1,0 +1,96 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 4e5+10;
+char s1[maxn],s2[maxn];
+int len1,len2;
+pair<int,ll> stk[maxn];
+struct SA{
+    int rk[maxn],sa[maxn],height[maxn];
+    int t1[maxn],t2[maxn],c[maxn];
+    bool cmp(int *s,int a,int b,int l){
+        return s[a]==s[b]&&s[a+l]==s[b+l];
+    }
+    void Sa(char *s,int n,int m){
+        n++;
+        int i,j,p,*x=t1,*y=t2;
+        for(i=0;i<m;i++)c[i]=0;
+        for(i=0;i<n;i++)c[x[i]=s[i]]++;
+        for(i=1;i<m;i++)c[i]+=c[i-1];
+        for(i=n-1;i>=0;i--)sa[--c[x[i]]]=i;
+        for(j=1;j<=n;j<<=1){
+            p=0;
+            for(i=n-j;i<n;i++)y[p++]=i;
+            for(i=0;i<n;i++)if(sa[i]>=j)y[p++]=sa[i]-j;
+            for(i=0;i<m;i++)c[i]=0;
+            for(i=0;i<n;i++)c[x[y[i]]]++;
+            for(i=1;i<m;i++)c[i]+=c[i-1];
+            for(i=n-1;i>=0;i--)sa[--c[x[y[i]]]]=y[i];
+            swap(x,y);
+            p=1;x[sa[0]]=0;
+            for(i=1;i<n;i++)x[sa[i]]=cmp(y,sa[i-1],sa[i],j)?p-1:p++;
+            if(p>=n)break;m=p;
+        }
+        int k=0;n--;
+        for(i=0;i<=n;i++)rk[sa[i]]=i;
+        for(i=0;i<n;i++){
+            if(k)k--;
+            j=sa[rk[i]-1];
+            while(s[i+k]==s[j+k])k++;
+            height[rk[i]]=k;
+        }
+    }
+    void solven2(int n,int len1){
+        int ans=0;
+        for(int i=1;i<=n;i++){
+            if(sa[i]<len1){
+                int lcp=maxn;
+                for(int j=i+1;j<=n;j++){
+                    lcp=min(lcp,height[j]);
+                    if(!lcp)break;
+                    if(sa[j]>=len1)ans+=lcp;
+                }
+                continue;
+            }
+            int lcp=maxn;
+            for(int j=i+1;j<=n;j++){
+                lcp=min(lcp,height[j]);
+                if(!lcp)break;
+                if(sa[j]<len1)ans+=lcp;
+            }
+        }cout<<ans;
+    }
+    void solve(int n){
+        ll ret=0;
+        int sum[maxn];sum[0]=0;
+        for(int i=1;i<=n;i++)sum[i]=sum[i-1]+(sa[i]<len1);
+        int top=0;
+        stk[0]=make_pair(1,0);
+        for(int i=1;i<=n;i++){
+            while(top &&height[ stk[top].first ]>height[i])top--;++top;
+            stk[top]=make_pair(i,(sum[i-1]-sum[stk[top-1].first-1])*height[i]+stk[top-1].second);
+            if(sa[i]>len1)ret+=stk[top].second;
+        }top=0;
+        for(int i=1;i<=n;i++)sum[i]=sum[i-1]+(sa[i]>len1);
+        for(int i=1;i<=n;i++){
+            while(top &&height[ stk[top].first ]>height[i])top--;top++;
+            stk[top]=make_pair(i,(sum[i-1]-sum[stk[top-1].first-1])*height[i]+stk[top-1].second);
+            if(sa[i]<len1)ret+=stk[top].second;
+        }cout<<ret;
+    }
+}sa;
+
+char s[maxn];
+int main(){
+    scanf("%s%s",s1,s2);
+    len1=strlen(s1);len2=strlen(s2);
+    int n=0;
+    for(int i=0;i<len1;i++)s[n++]=s1[i];
+    s[n++]='$';
+    for(int i=0;i<len2;i++)s[n++]=s2[i];
+    s[n]=0;
+    sa.Sa(s,n,128);
+    sa.solve(n);
+    //sa.solven2(n,len1);
+    return 0;
+}

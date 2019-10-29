@@ -1,0 +1,106 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cstring>
+using namespace std;
+const int maxn = 1010;
+const int Inf = 100000000;
+struct A{
+	int money;
+	int len;
+}map[maxn][maxn];
+struct B{
+	int money;
+	int len;
+};
+bool vis[maxn];
+B node[maxn];
+
+B Dijkstra(int Begin, int End, int n)
+{
+	node[Begin].len = 0;
+	node[Begin].money = 0;
+	vis[Begin] = true;
+	int now = Begin;
+	for(int i = 2; i <= n; i++)
+	{
+		B Min;
+		Min.len = Inf;
+		Min.money = Inf;
+		for(int j = 1; j <= n; j++)
+		{
+			if(!vis[j])
+			{
+				if(node[j].len == node[now].len + map[now][j].len)
+				{
+					if(node[j].money > node[now].money + map[now][j].money)
+						node[j].money = node[now].money + map[now][j].money;
+				}
+				if(node[j].len > node[now].len + map[now][j].len) 
+				{
+					node[j].len = node[now].len + map[now][j].len;
+					node[j].money = node[now].money + map[now][j].money;
+				}
+				if(Min.len > node[j].len)
+				{
+					Min.len = node[j].len;
+					Min.money = node[j].money;
+					Begin = j;
+				}
+				else if(Min.len == node[j].len)
+				{
+					if(Min.money > node[j].money)
+					{
+						Min.money = node[j].money;
+						Begin = j;
+					}
+				}
+			}
+		}
+		now = Begin;
+		vis[now] = true;
+	}
+	return node[End];	
+}
+
+void Clear(int n)
+{
+		memset(vis, false, sizeof(vis));
+		for(int i = 1; i <= n; i++)
+		{
+			node[i].len = Inf;
+			node[i].money = Inf;
+			for(int j = 1; j<= n; j++)
+			{
+				map[i][j].money = Inf;
+				map[i][j].len = Inf;
+			}
+		}
+}
+
+int main()
+{
+	int n, m;
+	while(~scanf("%d%d", &n, &m) && n != 0 && m != 0)
+	{
+		Clear(n);
+		for(int i = 1; i <= m; i++)
+		{
+			int a, b, c, d;
+			scanf("%d%d%d%d", &a, &b, &c, &d);
+			if(map[a][b].len > c)
+			{
+				map[a][b].len = map[b][a].len = c;
+				map[a][b].money = map[b][a].money = d;
+			}
+			else if(map[a][b].len == c && map[a][b].money > d)
+				map[a][b].money = map[b][a].money = d;
+		}
+//--------------------------------------------------------------
+		int b, e;
+		scanf("%d%d", &b, &e);
+		B minn = Dijkstra(b, e, n);
+		cout << minn.len << ' ' << minn.money << endl;
+	} 
+	return 0;
+} 

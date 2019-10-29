@@ -1,0 +1,51 @@
+int M;
+int lv[maxn<<2],rv[maxn<<2],mv[maxn<<2];
+int len[maxn<<2];
+int n;
+int a[maxn];
+int last[maxn];
+void build(){
+    for(M=1;M<=n+1;M<<=1);
+    for(int i=M+1;i<=n+M;i++){
+        lv[i]=rv[i]=mv[i]=0;len[i]=1;
+    }
+    for(int i=M-1;i;i--){
+        lv[i]=rv[i]=mv[i]=0;len[i]=len[i<<1]+len[i<<1|1];
+    }
+}
+void update(int p,int v){
+    lv[p+M]=rv[p+M]=mv[p+M]=v;p+=M;
+    for(p>>=1;p>=1;p>>=1){
+        if(lv[p<<1]==len[p<<1])lv[p]=lv[p<<1]+lv[p<<1|1];
+        else lv[p]=lv[p<<1];
+        if(rv[p<<1|1]==len[p<<1|1])rv[p]=rv[p<<1|1]+rv[p<<1];
+        else rv[p]=rv[p<<1|1];
+        mv[p]=max(mv[p<<1],mv[p<<1|1]);
+        mv[p]=max(mv[p],rv[p<<1]+lv[p<<1|1]);
+    }
+}
+
+int main(){
+    int T;read(T);
+    while(T--){
+        read(n);
+        for(int i=0;i<=n;i++)last[i]=0;
+        build();
+        int posl=1;
+        int ans=0;
+        for(int i=1;i<=n;i++){
+            read(a[i]);
+            if(ans==n)continue;
+            if(last[a[i]]>=posl){
+                while(last[a[i]]>=posl){
+                    update(a[posl],0);posl++;
+                }
+            }
+            update(a[i],1);
+            last[a[i]]=i;
+            ans=max(ans,mv[1]);
+        }
+        print(ans,'\n');
+    }
+    return 0;
+}

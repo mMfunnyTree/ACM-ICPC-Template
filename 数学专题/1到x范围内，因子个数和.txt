@@ -1,0 +1,17 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+int main(){
+    int q;
+    cin>>q;
+    while(q--){
+        int n;cin>>n;
+        ll ans=0;
+        for(int i=1;i*i<=n;i++){
+            ans += (n/i)*2;
+        }
+        cout<<ans-(int)sqrt(n)*(int)sqrt(n)<<endl;
+    }
+    return 0;
+}

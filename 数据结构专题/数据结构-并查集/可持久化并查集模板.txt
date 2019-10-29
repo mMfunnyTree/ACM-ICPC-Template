@@ -1,0 +1,97 @@
+#include <iostream>
+#include <algorithm>
+#include <stdio.h>
+using namespace std;
+typedef int LL;
+#define dd c=getchar()
+inline LL read(){LL a=0,b=1;char dd;while(!isdigit(c)&&c!='-')dd;
+    if(c=='-'){b=-b;dd;}while(isdigit(c)){a=a*10+c-'0';dd;}return a*b;}
+#undef dd
+template <int n>
+class vervec{
+LL tree[20*n],ls[20*n],rs[20*n],hd[n],hd1[2*n],tt,t,nh;LL*a;
+LL&ins(LL nod,LL l,LL r,LL x){/**  **/
+    if(l==r){return tree[nod];}
+    int mid=l+r>>1;
+    if(x<=mid){tree[++tt]=tree[ls[nod]];ls[tt]=ls[ls[nod]];rs[tt]=rs[ls[nod]];
+        ls[nod]=tt;return ins(tt,l,mid,x);}
+    if(x>mid){tree[++tt]=tree[rs[nod]];ls[tt]=ls[rs[nod]];rs[tt]=rs[rs[nod]];
+        rs[nod]=tt;return ins(tt,mid+1,r,x);}
+}
+void chit(){LL x=hd[nh];hd[++t]=++tt;tree[tt]=tree[x];
+    ls[tt]=ls[x];rs[tt]=rs[x];nh=t;}
+int build(LL l,LL r){/**主席树建树**/
+    LL nod=++tt;if(l==r){tree[nod]=a[l];ls[nod]=rs[nod]=0;return nod;}
+    LL mid=l+r>>1;
+    ls[nod]=build(l,mid);
+    rs[nod]=build(mid+1,r);
+    return nod;
+}
+void init(){tt=0;hd[nh=0]=1;build(1,n);}/**清空并建树**/
+LL query(LL nod,LL l,LL r,LL x){
+    if(l==r)return tree[nod];
+    LL mid=l+r>>1;
+    if(x<=mid)return query(ls[nod],l,mid,x);
+    else if(x>mid)return query(rs[nod],mid+1,r,x);
+}
+public:
+    vervec(){tt=0;t=0;nh=1;}
+    void init(LL*x){a=x;init();}
+    void mark(LL x){hd1[x]=nh;}/**修改当前时间戳**/
+    LL&operator[](LL x){chit();return ins(hd[nh],1,n,x);}
+    LL val(LL x){return query(hd[nh],1,n,x);}
+    void rever(LL x){nh=hd1[x];}
+};
+vervec<120003>f,c;
+LL getf(LL v){
+    LL fa=f.val(v);
+    if(fa==v)return v;
+    return getf(fa);
+}
+void add(LL a,LL b){/**启发式合并**/
+    a=getf(a);
+    b=getf(b);
+    if(a==b)return;
+    LL va=c.val(a),vb=c.val(b);
+    if(va==vb){
+        f[a]=b;
+        c[b]++;
+    }else if(va<vb){
+        f[a]=b;
+    }else{
+        f[b]=a;
+    }
+}
+LL sol[120003],n,m,x,y,z;
+void init(LL n){
+    for(LL i=1;i<=n;i++)sol[i]=i;/****初始集合为i*****/
+    f.init(sol);                 /**建树**/
+    for(LL i=1;i<=n;i++)sol[i]=1;
+    c.init(sol);
+}
+int main(){
+    n=read();
+    m=read();           /***n个集合，m个操作***/
+    init(n);
+    f.mark(0);
+    c.mark(0);
+    for(LL i=1;i<=m;i++){
+        x=read();
+        if(x==1){       /***合并两个集合***/
+            x=read();
+            y=read();
+            add(x,y);
+        }else if(x==2){ /***回退到第k次操作的状态***/
+            y=read();
+            f.rever(y);
+            c.rever(y);
+        }else{          /*****询问两个集合是否是同一个集合******/
+            x=read();
+            y=read();
+            puts(getf(x)==getf(y)?"1":"0");
+        }
+        f.mark(i);
+        c.mark(i);
+    }
+    return 0;
+}

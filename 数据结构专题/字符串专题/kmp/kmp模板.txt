@@ -1,0 +1,127 @@
+KMP算法是快速字符串匹配算法，朴素的暴力算法的时间复杂度为O（n*m），
+而KMP通过对模式串进行相应的处理，能够达到O（m+n）的速度。
+我们知道在字符串匹配的时候最消耗时间的就是当匹配到第 i 个位置发现不匹配时，
+下一次又对模式串进行一次重新匹配，那么假如模式串中有很多相同的字母的话，
+这样做了很多重复的事情，那么我可以对模式串进行一定的处理，
+处理处一个对应的数组，让他保存假如这里不匹配是我下次应该从哪儿重新开始。
+每次当前的一个值是根据前面是否匹配的到。
+这是预处理函数：
+void getfill(string s)
+{
+    memset(f,0,sizeof(f));  //根据其前一个字母得到
+    for(int i=1;i<s.size();i++)
+    {
+        int j=f[i];
+        while(j && s[i]!=s[j])
+            j=f[j];
+        f[i+1]=(s[i]==s[j])?j+1:0;
+    }
+}
+
+
+int find(string a,string s)
+{
+    
+    getfill(s);int j=0;
+    for(int i=0;i<a.size();i++)
+    {
+        while(j && a[i]!=s[j])
+            j=f[j];
+        if(a[i]==s[j])
+            j++;
+        if(j==s.size()){
+            return i-s.size()+1;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void getnext()
+{
+    int i,j;
+    next1[0]=0,next1[1]=0;
+    for(i=1;i<len1;i++)
+    {
+        j=next1[i];
+        while(j && s[i]!=s[j])
+            j=next1[j];
+
+        if(s[i]==s[j])
+            next1[i+1]=j+1;
+
+        else next1[i+1]=0;
+    }
+}
+
+void getnext()
+{
+    int i,j;
+    next1[0]=-1;
+    for(i=0;i<len1;i++)
+    {
+        j=next1[i];
+        while(j!=-1 && s[i]!=s[j])
+            j=next1[j];
+        next1[i+1]=j+1;
+    }
+}没有优化的getnext函数，next数组存的是前缀和后缀的最大匹配值
+
+void kmp()
+{
+    int i,j=0;
+    for(i=0;i<len2;i++)
+    {
+        while(j&&l[i]!=s[j])
+            j=next1[j];
+        if(l[i]==s[j])
+            j++;
+        if(j==len1)
+        {
+            ans++;
+            j=next1[j];
+        }
+    }
+}
+
+void getnext(const char *s)
+{
+	int i = 0, j = -1;
+	nextval[0] = -1;
+	while(i != len)
+	{
+		if(j == -1 || s[i] == s[j])
+			nextval[++i] = ++j;
+		else
+			j = nextval[j];
+	}
+}next[i]代表了前缀和后缀的最大匹配的值（需要彻底明白这点，相当重要）
+
+void getnext(const char *p) //前缀函数(滑步函数)
+{
+	int i = 0, j = -1;
+	nextval[0] = -1;
+	while(i != len)
+	{
+		if(j == -1 || p[i] == p[j]) //(全部不相等从新匹配 || 相等继续下次匹配)
+		{
+			++i, ++j;
+			if(p[i] != p[j]) //abcdabce
+				nextval[i] = j;
+			else //abcabca
+				nextval[i] = nextval[j];
+		}
+		else
+			j = nextval[j]; //子串移动到第nextval[j]个字符和主串相应字符比较
+	}
+}没有优化的getnext函数，next数组存的是前缀和后缀的最大匹配值，而优化后的getnext函数存的是在这个基础，进行更高效的改进。
+

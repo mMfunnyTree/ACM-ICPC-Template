@@ -1,0 +1,46 @@
+/************************hashtable*****************************/
+const int maxsize = 1000007;//如果内存允许并且单样例，随便开，否则maxc/10 ~ maxc
+const int maxc = 1e6+5;//要大于最大状态个数
+struct e{
+    int to,nxt,val,cnt;
+};
+struct hash_table_for_map_int_int{
+    int cnt=0;
+    int head[maxsize];
+    e edge[maxc+10];
+    int h(int x){
+        return abs(((x)^(x<<1)^(x>>1))%maxsize);
+    }
+    void Insert(int id,int val){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                edge[i].cnt++;return;
+            }
+        }
+        edge[++cnt].to=val;
+        edge[cnt].cnt=1;
+        edge[cnt].nxt=head[id];
+        head[id]=cnt;
+    }
+    void drop(int id,int val,int num){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                edge[i].cnt=num;return;
+            }
+        }
+    }
+    int query(int id,int val){
+        for(int i=head[id];i!=0;i=edge[i].nxt){
+            if(edge[i].to==val){
+                return edge[i].cnt;
+            }
+        }return 0;
+    }
+    void init(){
+        cnt=0;
+        memset(head,0,sizeof head);
+    }
+};
+hash_table_for_map_int_int mp;
+
+/************************hashtable*****************************/

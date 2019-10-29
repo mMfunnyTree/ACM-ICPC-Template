@@ -1,0 +1,40 @@
+rope
+
+#include <ext/rope>
+二叉树实现，存储字符串，时间复杂度O(logN)
+using namespace __gnu_cxx;
+rope<int> T;
+for(int i=1;i<=n;i++) T.push_back(i);
+T = T.substr(p,s) + T.substr(0,p)+T.substr(p+s,n-p-s);
+for(int i=1;i<=n;i++) printf("%d ",T.at(i));
+
+可持久化：
+rope<char> *his[maxn];
+
+his[0] = new rope<char>();
+his[i] = new rope<char>(*his[i-1]);
+O(1)copy历史版本
+
+insert(位置,值)
+erase(位置，大小)
+substr(位置，大小)
+
+test.push_back(x);//在末尾添加x
+
+
+test.insert(pos,x);//在pos插入x　　
+
+
+test.erase(pos,x);//从pos开始删除x个
+
+
+test.copy(pos,len,x);//从pos开始到pos+len为止用x代替
+
+
+test.replace(pos,x);//从pos开始换成x
+
+
+test.substr(pos,x);//提取pos开始x个
+
+
+test.at(x)/[x];//访问第x个元素

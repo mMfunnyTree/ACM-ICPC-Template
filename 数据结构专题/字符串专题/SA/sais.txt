@@ -1,0 +1,102 @@
+#define ll long long
+#define re register
+#define gc getchar
+#define pc putchar
+#define cs const
+cs int N=4e5;
+namespace SA{
+    char s[N];
+    int sa[N],rk[N],ht[N],len;
+    int b[N],wb[N];
+    bool t[N<<1];
+    inline bool islms(int i,bool *cs t);
+    template<class T>
+    inline void induced_sort(T s,int len,int siz,int sigma,bool *cs t,int *cs cb,int *cs p);
+    template<class T>
+    inline void sais(T s,int len,bool *cs t,int *cs b1,int sigma);
+    inline void init(char str[],int len);
+}
+inline bool SA::islms(int i,bool *cs t){
+    return i>0&&t[i]&&!t[i-1];
+}
+template<class T>
+inline void SA::induced_sort(T s,int len,int siz,int sigma,bool *cs t,int *cs cb,int *cs p){
+    memset(b,0,sigma<<2);
+    memset(sa,-1,len<<2);
+    for(int re i=0;i<len;++i)++b[s[i]];
+    cb[0]=b[0];
+    for(int re i=1;i<sigma;++i)cb[i]=cb[i-1]+b[i];
+    for(int re i=siz-1;~i;--i)sa[--cb[s[p[i]]]]=p[i];
+    for(int re i=1;i<sigma;++i)cb[i]=cb[i-1]+b[i-1];
+    for(int re i=0;i<len;++i)if(sa[i]>0&&!t[sa[i]-1])sa[cb[s[sa[i]-1]]++]=sa[i]-1;
+    cb[0]=b[0];
+    for(int re i=1;i<sigma;++i)cb[i]=cb[i-1]+b[i];
+    for(int re i=len-1;~i;--i)if(sa[i]>0&&t[sa[i]-1])sa[--cb[s[sa[i]-1]]]=sa[i]-1;
+}
+template<class T>
+inline void SA::sais(T s,int len,bool *cs t,int *cs b1,int sigma){
+    int *cb=b+sigma,siz=0,cnt=0,p=-1;
+    t[len-1]=1;
+    for(int re i=len-2;~i;--i)t[i]=s[i]==s[i+1]?t[i+1]:(s[i]<s[i+1]);
+    for(int re i=1;i<len;++i)if(islms(i,t))b1[siz++]=i;
+    induced_sort(s,len,siz,sigma,t,cb,b1);
+    for(int re i=siz=0;i<len;++i)if(islms(sa[i],t))sa[siz++]=sa[i];
+    memset(sa+siz,-1,(len-siz)<<2);
+    for(int re i=0;i<siz;++i){
+        re int x=sa[i];
+        for(int re j=0;j<len;++j){
+            if(p==-1||s[x+j]!=s[p+j]||t[x+j]!=t[p+j]){
+                ++cnt;p=x;
+                break;
+            }
+            else if(j>0&&(islms(x+j,t)||islms(p+j,t)))break;
+        }
+        sa[siz+(x>>1)]=cnt-1;
+    }
+    for(int re i=len-1,j=len-1;i>=siz;--i)if(~sa[i])sa[j--]=sa[i];
+    int *s1=sa+len-siz,*b2=b1+siz;
+    if(cnt<siz)sais(s1,siz,t+len,b1+siz,cnt);
+    else for(int re i=0;i<siz;++i)sa[s1[i]]=i;
+    for(int re i=0;i<siz;++i)b2[i]=b1[sa[i]];
+    induced_sort(s,len,siz,sigma,t,cb,b2);
+}
+inline void SA::init(char str[],int len1){
+    memset(ht,0,sizeof ht);
+    memset(rk,0,sizeof rk);
+    memset(b,0,sizeof b);
+    memset(wb,0,sizeof wb);
+    memset(t,0,sizeof t);
+    sais(s+1,len1+1,t,wb,128);
+    rk[0]=0,sa[0]=len1+1;
+    for(int re i=1;i<=len1;++i)rk[++sa[i]]=i;
+    for(int re i=1,k=0,j=0;i<len1;ht[rk[i++]]=k)
+    for(k?--k:0,j=sa[rk[i]-1];s[i+k]==s[j+k];++k);
+}
+/***/
+int RMQ[N],mm[N];
+int best[18][N];
+void initRMQ(int n){
+    mm[0]=-1;
+    for(int i=1;i<=n;++i)
+        mm[i]=((i&(i-1))==0)?mm[i-1]+1:mm[i-1];
+    for(int i=1;i<=n;i++)best[0][i]=i;
+    for(int i=1;i<=mm[n];i++)
+        for(int j=1;j+(1<<i)-1<=n;j++){
+            int a=best[i-1][j];
+            int b=best[i-1][j+(1<<(i-1))];
+            if(RMQ[a]<RMQ[b])best[i][j]=a;
+            else best[i][j]=b;
+        }
+}
+int askRMQ(int a,int b){
+    int t=mm[b-a+1];
+    b-=(1<<t)-1;
+    a=best[t][a];b=best[t][b];
+    return RMQ[a]<RMQ[b]?a:b;
+}
+int lcp(int a,int b){
+    //a=SA::rk[a];b=SA::rk[b];
+    if(a>b)swap(a,b);
+    return SA::ht[askRMQ(a+1,b)];
+}
+/***/

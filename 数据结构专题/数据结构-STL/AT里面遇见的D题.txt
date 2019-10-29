@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+#define fst first
+#define snd second
+#define rep(n) for(lint I = 0; (I) < (lint)(n); ++(I))
+#define repeat(i, n) for(lint i = 0; (i) < (lint)(n); ++(i))
+#define repeat_to(i, n) for(lint i = 0; (i) <= (lint)(n); ++(i))
+#define repeat_from(i, m, n) for(lint i = (m); (i) < (lint)(n); ++(i))
+#define repeat_from_to(i, m, n) for(lint i = (m); (i) <= (lint)(n); ++(i))
+#define repeat_reverse_from_to(i, m, n) for(lint i = (m); (i) >= (lint)(n); --(i))
+#define el cout<<endl
+#define dump(x) cout<<" "<<#x<<"="<<x
+#define vdump(v) for(size_t I=0; I<v.size(); ++I){cout<<" "<<#v<<"["<<I<<"]="<<v[I];} cout<<endl
+using namespace std;
+using lint = long long;
+using ld = long double;
+ 
+int main(void) {
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    repeat(i, n) cin >> a[i];
+    vector<pair<int, int>> ans;
+    
+    auto minit = min_element(a.begin(), a.end());
+    int minval = *minit;
+    int minpos = distance(a.begin(), minit);
+    
+    auto maxit = max_element(a.begin(), a.end());
+    int maxval = *maxit;
+    int maxpos = distance(a.begin(), maxit);
+    
+    if (minval >= 0) {
+        repeat(i, n - 1) ans.emplace_back( make_pair(i + 1, i + 2) );
+    }
+    else if (maxval <= 0 ) {
+        repeat(i, n - 1) ans.emplace_back( make_pair(n - i, n - i - 1) );
+    }
+    else if (minval < 0 && maxval + minval >= 0) {
+        repeat(i, n) ans.emplace_back( make_pair(maxpos + 1, i + 1) );
+        repeat(i, n - 1) ans.emplace_back( make_pair(i + 1, i + 2) );
+    }
+    else if (minval < 0 && maxval + minval < 0) {
+        repeat(i, n) ans.emplace_back( make_pair(minpos + 1, i + 1) );
+        repeat(i, n - 1) ans.emplace_back( make_pair(n - i, n - i - 1) );
+    }
+    cout << ans.size() << endl;
+    repeat(i, ans.size()) {
+        cout << ans[i].fst << " " << ans[i].snd << endl;
+    }   
+}

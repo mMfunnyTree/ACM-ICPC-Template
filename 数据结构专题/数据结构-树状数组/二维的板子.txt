@@ -1,0 +1,70 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <set>
+#include <queue>
+#include <stack>
+#include <string>
+#include <cstring>
+#include <cmath>
+
+using namespace std;
+
+#define maxn 2005
+#define lowbit(i) ((i)&(-i))
+
+int op,n,x,y,k;
+
+int c[maxn][maxn];
+
+int sum(int x,int y)
+{
+    int s=0;
+    for(int i=x;i;i-=lowbit(i))
+    {
+        for(int j=y;j;j-=lowbit(j))
+        {
+            s+=c[i][j];
+        }
+    }
+    return s;
+}
+
+void add(int x,int y,int v)
+{
+    for(int i=x;i<=n;i+=lowbit(i))
+    {
+        for(int j=y;j<=n;j+=lowbit(j))
+        {
+            c[i][j]+=v;
+        }
+    }
+}
+
+int main()
+{
+    while(scanf("%d%d",&op,&n)!=EOF)
+    {
+        memset(c,0,sizeof(c));
+        while(1)
+        {
+            scanf("%d",&op);
+            if(op==1)
+            {
+                scanf("%d%d%d",&x,&y,&k);
+                add(x+1,y+1,k);
+            }
+            else if(op==2)
+            {
+                int l,r,t,d;
+                scanf("%d%d%d%d",&l,&d,&r,&t);
+                l++,r++,t++,d++;
+                printf("%d\n",sum(r,t)-sum(r,d-1)-sum(l-1,t)+sum(l-1,d-1));
+            }
+            else break;
+        }
+    }
+    return 0;
+}

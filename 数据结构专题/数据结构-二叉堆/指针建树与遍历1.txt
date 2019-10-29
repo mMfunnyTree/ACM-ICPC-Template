@@ -1,0 +1,106 @@
+*       二叉树建树与遍历
+*       Trees on the level
+
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <vector>
+#include <queue>
+using namespace std;
+
+char s[1000];
+
+struct node
+{
+    bool used;      //标记该结点是否有值
+    int v;
+    node *l,*r;     //左右子节点
+    node():used(false),l(NULL),r(NULL){};//构建函数
+};
+
+node* root;
+node* newnode(){return new node();} //构建新结点
+
+bool failed;
+
+void addnode(int v,char *s)
+{
+    int len = strlen(s);
+    node *u = root;
+    for(int i=0;i<len;i++)
+    {
+        if(s[i]=='L')
+        {
+            if(u->l==NULL) u->l = newnode();
+            u = u->l;
+        }
+        else if(s[i]=='R')
+        {
+            if(u->r==NULL) u->r = newnode();
+            u = u->r;
+        }
+    }
+    if(u->used)failed = true;
+    u->v = v;
+    u->used = true;
+}
+
+void remove_tree(node* u)//清理内存
+{
+    if(u==NULL) return ;
+    remove_tree(u->l);
+    remove_tree(u->r);
+    delete u;
+}
+
+int read()
+{
+    failed = false;
+    remove_tree(root);
+    root = newnode();
+    while(1)
+    {
+        if(scanf("%s",s)!=1)return 0;
+        if(s[1]==')') break;
+        int v;
+        sscanf(&s[1],"%d",&v);
+        addnode(v,strchr(s,',')+1);
+    }
+    return 1;
+}
+
+bool bfs(vector<int>& ans)//宽度优先遍历
+{
+    queue<node*> q;
+    ans.clear();
+    q.push(root);
+    while(!q.empty())
+    {
+        node* u = q.front();q.pop();
+        if(!u->used) return false;
+        ans.push_back(u->v);
+        if(u->l!=NULL) q.push(u->l);
+        if(u->r!=NULL) q.push(u->r);
+    }
+    return true;
+}
+
+int main()
+{
+    vector<int>ans;
+    while(read())
+    {
+        if(!bfs(ans))failed = 1;
+        if(failed) printf("not complete\n");
+        else
+        {
+            for(int i=0;i<ans.size();i++)
+            {
+                if(i)printf(" ");
+                printf("%d",ans[i]);
+            }printf("\n");
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,39 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+string s1,s2;
+struct node
+{
+    char l,r;
+}node[256];
+
+char build(int l1,int r1,int l2,int r2){
+    if(l1>r1)
+        return '#';
+    int i,j;
+    for(i=l2;i<r2;i++)
+        if(s1[l1]==s2[i])break;
+    j=l1+(i-l2)+1;
+    node[s1[l1]].l=build(l1+1,j-1,l2,i-1);
+    node[s1[l1]].r=build(j,r1,i+1,r2);
+    return s1[l1];
+}
+
+int main()
+{
+    int t;
+    cin>>t;
+    while(t--){
+        cin>>s1>>s2;
+        build(0,s1.size()-1,0,s1.size()-1);
+        int m;
+        cin>>m;
+        while(m--){
+            char s[2];
+            scanf("%s",s);
+            printf("%c%c%c",node[s[0]].l,node[s[0]].r,((m>0)?' ':'\n'));
+        }
+    }
+    return 0;
+}

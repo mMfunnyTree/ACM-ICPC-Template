@@ -1,0 +1,108 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const double pi = acos(-1);
+const double eps= 1e-8;
+
+int sgn(double x){
+    if(x>eps) return 1;
+    if(x<-eps) return -1;
+    return 0;
+}
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+    bool operator<(const point &a)const{
+        return x<a.x||x==a.x&&y<a.y;
+    }
+}vec[300],p[300],sta[300];
+
+int n,R,r;
+double cross(point p0,point p1,point p2){
+    return (p1.x-p0.x)*(p2.y-p0.y)-(p2.x-p0.x)*(p1.y-p0.y);
+}
+double dis(point p1){
+    return sqrt(p1.x*p1.x+p1.y*p1.y);
+}
+double dis(point p1,point p2){
+    return dis(point(p1.x-p2.x,p1.y-p2.y));
+}
+
+void graham(){
+    sort(p,p+n);
+    int top=1;
+    sta[0]=p[0];sta[1]=p[1];
+    for(int i=2;i<n;++i){
+        while(top&&cross(sta[top-1],sta[top],p[i])>-eps) --top;
+        sta[++top]=p[i];
+    }
+    int k=top;
+    for(int i=n-2;i>=0;--i){
+        while(top>k&&cross(sta[top-1],sta[top],p[i])>-eps) --top;
+        sta[++top]=p[i];
+    }
+    if(top) top--;
+    for(int i=0;i<=top;++i) p[i]=sta[i];
+    n=top+1;
+}
+
+double asd(point o){
+    double ret=0;
+    for(int i=0;i<n;i++){
+        ret=max(ret,dis(o,p[i]));
+    }return ret;
+}
+point o;
+
+int main(){
+    srand(time(NULL));
+    freopen("robots.in","r",stdin);
+    int T;cin>>T;
+    while(T--){
+        double minx=1e8,maxx=-1e8;
+        double miny=1e8,maxy=-1e8;
+        scanf("%d%d%d",&n,&R,&r);R-=r;
+        point now=point();
+        for(int i=0;i<n;i++){
+            scanf("%lf%lf",&vec[i].x,&vec[i].y);
+            now.x+=vec[i].x,now.y+=vec[i].y;
+            p[i]=now;
+            minx=min(minx,p[i].x);
+            maxx=max(maxx,p[i].x);
+            miny=min(miny,p[i].y);
+            maxy=max(maxy,p[i].y);
+        }p[n]=point();n++;
+        graham();
+        o=point((minx+maxx)/2,(miny+maxy)/2);
+        double step=1e5+10;
+        double ans=asd(o);
+        while(step>eps){
+            int f=1;
+            while(f){
+                f=0;
+                point ttmp=o;
+                for(int i=0;i<100;i++){
+                    double cs = i*2*acos(-1)/100;
+                    point cur=point(o.x+cos(cs)*step,o.y+sin(cs)*step);
+                    double tmp=asd(cur);
+                    if(tmp<=R){
+                        o=cur;
+                        goto ed;
+                    }
+                    if(ans-tmp>eps){
+                        f=1;
+                        ans=tmp;
+                        ttmp=cur;
+                    }
+                }
+                o=ttmp;
+            }
+            step*=0.99;
+        }
+        ed:;
+        printf("%.10f %.10f\n",-o.x,-o.y);
+    }
+    return 0;
+}

@@ -1,0 +1,54 @@
+// luogu-judger-enable-o2
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 6e5+10;
+int las=0;
+int n,m,son[maxn*24*2][2],siz[maxn*24*2],tot,ttot;
+int T[maxn];
+
+void ins(int x){
+    int rt=T[ttot];
+    T[++ttot]=++tot;
+    int nrt=tot;
+    for(int i=24;i>=0;i--){
+        bool c=(x>>i)&1;
+        son[nrt][c]=++tot;
+        son[nrt][!c]=son[rt][!c];
+        rt=son[rt][c];nrt=son[nrt][c];
+        siz[nrt]=siz[rt]+1;
+    }
+}
+int ask(int lrt,int rrt,int x){
+    int ret=0;
+    for(int i=24;i>=0;i--){
+        bool c=(x>>i)&1;
+        if(siz[son[rrt][!c]] - siz[son[lrt][!c]] >0 ){
+            ret|=(1<<i);
+            lrt=son[lrt][!c];rrt=son[rrt][!c];
+        } else {
+            lrt=son[lrt][c];rrt=son[rrt][c];
+        }
+    }return ret;
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	int x;
+	ins(las);
+	for(int i=1;i<=n;i++){
+        scanf("%d",&x);las^=x;ins(las);
+	}
+	char op[2];int l,r;
+	while(m--){
+        scanf("%s",op);
+        if(op[0]=='A'){
+            scanf("%d",&x);las^=x;ins(las);
+        }
+        else{
+            scanf("%d%d%d",&l,&r,&x);
+            printf("%d\n",ask(T[l-1],T[r],las^x));
+        }
+	}
+	return 0;
+}

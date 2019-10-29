@@ -1,0 +1,50 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn=100010;
+const double eps=1e-6;
+int n,k,Max;
+double m;
+struct Node
+{
+    int s,c;
+    bool operator<(const Node&p)const
+    {
+        return s*(c-m)>p.s*(p.c-m);
+    }
+}arr[maxn];
+inline bool check()
+{
+    nth_element(arr,arr+k,arr+n);
+    double ans=0;
+    for(int i=0;i<k;i++) ans+=arr[i].s*(arr[i].c-m);
+    return !(ans<-eps);
+}
+inline double solve()
+{
+    double l=0,r=Max+2;
+    while(r-l>eps)
+    {
+        double mid=(l+r)/2;
+        m=mid;
+        if(check()) l=mid;
+        else r=mid;
+    }
+    return (l+r)/2;
+}
+int main()
+{
+   // freopen("a.txt","r",stdin);
+    while(~scanf("%d%d",&n,&k))
+    {
+        k=n-k;
+        Max=0;
+        for(int i=0;i<n;i++) scanf("%d",&arr[i].s);
+        for(int i=0;i<n;i++)
+        {
+            scanf("%d",&arr[i].c);
+            Max=max(Max,arr[i].c);
+        }
+        printf("%.10lf\n",solve());
+    }
+    return 0;
+}

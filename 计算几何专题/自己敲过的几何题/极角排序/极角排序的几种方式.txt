@@ -1,0 +1,44 @@
+struct point//存储点
+{
+    double x,y;
+};
+
+double cross(double x1,double y1,double x2,double y2)　//计算叉积
+{
+    return (x1*y2-x2*y1);
+}
+
+double compare(point a,point b,point c)//计算极角
+{
+    return cross((b.x-a.x),(b.y-a.y),(c.x-a.x),(c.y-a.y));
+}
+bool cmp1(point a,point b)
+{
+    if(atan2(a.y,a.x)!=atan2(b.y,b.x))
+        return atan2(a.y,a.x)<atan2(b.y,b.x);
+    else return a.x<b.x;
+}
+bool cmp2(point a,point b) 
+{
+    point c;//原点
+    c.x = 0;
+    c.y = 0;
+    if(compare(c,a,b)==0)//计算叉积，函数在上面有介绍，如果叉积相等，按照X从小到大排序
+        return a.x<b.x;
+    else return compare(c,a,b)>0;
+}
+int Quadrant(point a)　　//象限排序，注意包含四个坐标轴
+{
+    if(a.x>0&&a.y>=0)  return 1;
+    if(a.x<=0&&a.y>0)  return 2;
+    if(a.x<0&&a.y<=0)  return 3;
+    if(a.x>=0&&a.y<0)  return 4;
+}
+
+
+bool cmp3(point a,point b)  //先按象限从小到大排序 再按极角从小到大排序
+{
+    if(Quadrant(a)==Quadrant(b))//返回值就是象限
+        return cmp1(a,b);
+    else Quadrant(a)<Quadrant(b);
+}

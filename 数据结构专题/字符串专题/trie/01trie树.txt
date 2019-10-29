@@ -1,0 +1,56 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+int n,head[maxn],cnt,val[maxn];
+struct edge{
+    int nxt,to,w;
+}e[maxn<<1];
+void adde(int u,int v,int w){
+    e[++cnt].nxt=head[u];
+    e[cnt].to=v;
+    e[cnt].w=w;
+    head[u]=cnt;
+}
+void dfs(int u,int pre,int v){
+    val[u]=v;
+    for(int i=head[u];i;i=e[i].nxt){
+        if(e[i].to==pre)continue;
+        dfs(e[i].to,u,v^e[i].w);
+    }
+}
+int ans=0;
+int son[maxn*30+5][2],tot;
+void ask(int x){
+    int u=0,tmp=0;
+    for(int i=30;i>=0;i--){
+        bool c=(((1<<i)&x)!=0);
+        if(son[u][!c]){
+            tmp|=(1<<i);u=son[u][!c];
+        } else {
+            u=son[u][c];
+        }
+    }ans=max(ans,tmp);
+}
+void ins(int x){
+    int u=0;
+    for(int i=30;i>=0;i--){
+        bool c=(((1<<i)&x)!=0);//当前这位是1还是0
+        if(!son[u][c])son[u][c]=++tot;//出没出现过，没出现过就新建节点
+        u=son[u][c];
+    }
+}
+
+int main(){
+    scanf("%d",&n);
+    int u,v,w;
+    for(int i=1;i<n;i++){
+        scanf("%d%d%d",&u,&v,&w);
+        adde(u,v,w);adde(v,u,w);
+    }
+    dfs(1,0,0);
+    for(int i=1;i<=n;i++){
+        ask(val[i]);ins(val[i]);
+    }cout<<ans;
+    return 0;
+}

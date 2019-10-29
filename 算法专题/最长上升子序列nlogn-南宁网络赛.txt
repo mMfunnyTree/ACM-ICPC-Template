@@ -1,0 +1,39 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define maxn 2000006
+int a[maxn];
+int d[maxn];
+int cnt=1;
+
+int main()
+{
+    int b;
+    while(scanf("%d",&b)!=EOF)
+    {
+        if(b>=10000)
+        {
+            b-=10000;
+            for(int i=1;i<=5;i++)
+                a[cnt++]=b;
+        }
+        else if(b>=0)
+        {
+            a[cnt++]=b;
+        }
+    }
+    if(cnt==1) return cout<<0<<endl,0;
+    d[1]=a[1];
+    int len=1;
+    for(int i=2;i<cnt;i++)
+    {
+        if (a[i]>=d[len]) d[++len]=a[i];
+        else
+        {
+            int j=upper_bound(d+1,d+len+1,a[i])-d;
+            d[j]=a[i];
+        }
+    }
+    printf("%d\n",len);
+    return 0;
+}

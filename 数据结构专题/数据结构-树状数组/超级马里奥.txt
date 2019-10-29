@@ -1,0 +1,93 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <set>
+#include <queue>
+#include <stack>
+#include <string>
+#include <cstring>
+#include <cmath>
+
+using namespace std;
+
+#define maxn 111005
+#define lowbit(i) ((i)&(-i))
+
+struct np
+{
+    int h,id;
+    friend bool operator < (np A,np B)
+    {
+        return A.h<B.h;
+    }
+}p[maxn];
+
+struct ques
+{
+    int l,r,h,id;
+    friend bool operator < (ques A,ques B)
+    {
+        return A.h<B.h;
+    }
+}q[maxn];
+
+int c[maxn],ans[maxn];
+
+void add(int i,int v)
+{
+    while(i<maxn)
+    {
+        c[i]+=v;
+        i+=lowbit(i);
+    }
+}
+
+int sum(int i)
+{
+    int s=0;
+    while(i)
+    {
+        s+=c[i];
+        i-=lowbit(i);
+    }
+    return s;
+}
+
+int main()
+{
+    int t;cin>>t;
+    for(int ca=1;ca<=t;ca++)
+    {
+        memset(c,0,sizeof(c));
+        memset(ans,0,sizeof(ans));
+        int n,m;
+        scanf("%d%d",&n,&m);
+        for(int i=1;i<=n;i++)
+        {
+            scanf("%d",&p[i].h);
+            p[i].id = i;
+        }
+        for(int i=1;i<=m;i++)
+        {
+            scanf("%d%d%d",&q[i].l,&q[i].r,&q[i].h);
+            q[i].l++,q[i].r++;
+            q[i].id = i;
+        }
+        sort(p+1,p+n+1);
+        sort(q+1,q+m+1);
+        for(int i=1,j=1;i<=m;i++)
+        {
+            while(j<=n && q[i].h >= p[j].h)
+                add(p[j++].id,1);
+            ans[q[i].id] = sum(q[i].r) - sum(q[i].l - 1);
+        }
+        printf("Case %d:\n",ca);
+        for(int i=1;i<=m;i++)
+        {
+            printf("%d\n",ans[i]);
+        }
+    }
+    return 0;
+}

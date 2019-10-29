@@ -1,0 +1,39 @@
+if(len[now]<=2)half[now]=fail[now];
+else{
+    int tmp=half[cur];
+    while( S[n-len[tmp]-1]!=S[n] || (len[tmp]+2)*2 > len[now] )tmp=fail[tmp];
+    half[now]=nxt[tmp][c];
+}
+
+    int diff[maxn],snext[maxn];
+    /**
+    diff[x]表示x的最长回文后缀长度减少了多少
+    snext[x]表示fail链上第一个diff[y]!=diff[x]的状态
+    series[x]表示x -> snext[x]的链
+    */
+    int f[maxn],series[maxn];
+    f[0]=1;
+    for(int i=1;i<=n;++i){
+        p.add(s[i],i);
+        for(int v=p.last;p.len[v]>0;v=p.snext[v]){
+            series[v]=f[i-(p.len[p.snext[v]]+p.diff[v])];
+            if(p.diff[v]==p.diff[p.fail[v]])
+                (series[v]+=series[p.fail[v]])%=mod;
+            (f[i]+=series[v])%=mod;
+        }if(i&1)f[i]=0;
+    }
+    cout<<f[n];
+
+
+	1 - 31 长度的回文串是否存在
+	f[0]=1;
+	for(int i=1; i<=n; i++) {
+		pam.insert(s[i]-'a');
+		for(int v=pam.last; pam.len[v]>0; v=pam.snext[v]) {
+			series[v]=f[i-(pam.len[pam.snext[v]]+pam.diff[v])];
+			if(pam.diff[v]==pam.diff[pam.next[v]])
+				series[v]|=series[pam.next[v]];
+			f[i]|=series[v]<<1;
+		}
+		printf("%u\n",f[i]>>1);
+	}

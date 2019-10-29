@@ -1,0 +1,54 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+using namespace std;
+const double eps = 1e-8;
+
+int sig(double x){
+    return (x>eps) - (x<-eps);
+}
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+};
+
+double cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+bool iscross(point p1,point p2,point p3,point p4){
+	if(min(p1.x,p2.x)>max(p3.x,p4.x)||
+        min(p3.x,p4.x)>max(p1.x,p2.x)||
+        min(p1.y,p2.y)>max(p3.y,p4.y)||
+        min(p3.y,p4.y)>max(p1.y,p2.y))return 0;
+	double r1=cross(p1,p2,p3);
+	double r2=cross(p1,p2,p4);
+	double r3=cross(p3,p4,p1);
+	double r4=cross(p3,p4,p2);
+	if(sig(r1*r2)<=0&&sig(r3*r4)<=0)return 1;
+	return 0;
+}
+
+point p[100005][2];
+bool vis[100005];
+int main(){
+    int n;
+    while(scanf("%d",&n)!=EOF&&n){
+        for(int i=1;i<=n;i++){
+            vis[i]=1;
+            scanf("%lf%lf%lf%lf",&p[i][0].x,&p[i][0].y,&p[i][1].x,&p[i][1].y);
+        }
+        printf("Top sticks:");
+        for(int i=1;i<n;i++){
+            for(int j=i+1;j<=n;j++){
+                if(iscross(p[i][0],p[i][1],p[j][0],p[j][1])){
+                    vis[i]=0;break;
+                }
+            }if(vis[i])printf(" %d,",i);
+        }printf(" %d.\n",n);
+    }
+    return 0;
+}

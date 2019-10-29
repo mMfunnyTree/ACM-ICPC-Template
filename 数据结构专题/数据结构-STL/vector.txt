@@ -1,0 +1,18 @@
+向量(vector) 连续存储的元素<vector>
+
+operator  =  	vector的赋值
+begin           返回第一个元素的地址
+end		返回最后一个元素的下一个位置
+size		返回数组大小
+capacity	返回分配的大小
+max_size	返回最大可到达的大小
+resize		改变数组大小（多删，少补0，申明补什么就补什么）
+empty		0：数组为空
+front		返回第一个元素的值
+back		返回最后一个元素的值
+push_back	在尾部添加元素
+pop_back	在尾部删除元素
+insert		插入元素
+erase		删除元素
+swap		交换位置
+clear		清空数组

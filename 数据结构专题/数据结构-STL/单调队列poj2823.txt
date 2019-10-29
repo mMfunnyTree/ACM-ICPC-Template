@@ -1,0 +1,54 @@
+#include<cstring>
+#include<cstdio>
+#define N 1000050
+#define INF 2147483647
+using namespace std;
+int n,k;
+int a[N];
+struct Elem{
+	int k,num;
+}Queue[N];
+int l=1,r=1;
+inline void GetMin(){
+	memset(Queue,0,sizeof Queue);
+	Queue[0].k=-INF;
+	l=1,r=1;
+	for(int i=1;i<=k;i++){
+		while(Queue[r].k>=a[i] && r>=l) r--;
+		Queue[++r].k=a[i];
+		Queue[r].num=i;
+    }
+	for(int i=k;i<=n;i++){
+        while(Queue[r].k>=a[i] && r>=l) r--; //维护单调性 
+        Queue[++r].k=a[i];
+		Queue[r].num=i;
+        while(Queue[l].num<=i-k) l++;  //维护队列下标范围k以内 
+        printf("%d ",Queue[l].k);
+    } 
+}
+inline void GetMax(){
+	memset(Queue,0,sizeof Queue);
+	Queue[0].k=INF;
+	l=1,r=1;
+	for(int i=1;i<=k;i++){
+		while(Queue[r].k<=a[i] && r>=l) r--;
+		Queue[++r].k=a[i];
+		Queue[r].num=i;
+    }
+	for(int i=k;i<=n;i++){
+        while(Queue[r].k<=a[i] && r>=l) r--;
+        Queue[++r].k=a[i];
+		Queue[r].num=i;
+        while(Queue[l].num<=i-k) l++;
+        printf("%d ",Queue[l].k);
+    } 
+}
+int main(){
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<=n;i++)
+		scanf("%d",a+i);
+	GetMin();
+	printf("\n");
+	GetMax();
+return 0;
+}

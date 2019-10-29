@@ -1,0 +1,69 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn=2e5;
+char s[maxn+50];
+int sa[maxn+50],rk[maxn+50];
+int t[maxn+50],t2[maxn+50],c[maxn+50];
+int nx[maxn+5][19];
+int len,k;
+queue<int> q[maxn+5];
+void getsa(int m)//m表示最大字符的编码
+{
+    memset(t,-1,sizeof(t));
+    memset(t2,-1,sizeof(t2));
+    int *x=t,*y=t2;
+    for(int i=0;i<m;++i) c[i]=0;
+    for(int i=0;i<len;++i) c[x[i]=s[i]]++;
+    for(int i=1;i<m;++i) c[i]+=c[i-1];
+    for(int i=len-1;i>=0;--i) sa[--c[x[i]]]=i;
+    for(int j=0,k=1;k<=len;k<<=1,++j)
+    {
+        /*int p=0;
+        for(int i=len-k;i<len;++i) y[p++]=i;
+        for(int i=0;i<len;++i) if(sa[i]>=k) y[p++]=sa[i]-k;*/
+
+        int p=0;
+        for(int i=0;i<len;++i) q[nx[i][j]].push(i);
+        for(int i=0;i<len;++i)
+            while(!q[sa[i]].empty())
+            {
+                y[p++]=q[sa[i]].front();
+                q[sa[i]].pop();
+            }
+
+        for(int i=0;i<m;++i) c[i]=0;
+        for(int i=0;i<len;++i) c[x[y[i]]]++;
+        for(int i=0;i<m;++i) c[i]+=c[i-1];
+        for(int i=len-1;i>=0;--i) sa[--c[x[y[i]]]]=y[i];
+        swap(x,y);
+        p=1,x[sa[0]]=0;
+        for(int i=1;i<len;++i)
+            if(y[sa[i-1]]==y[sa[i]]&&y[nx[sa[i-1]][j]]==y[nx[sa[i]][j]]) x[sa[i]]=p-1;else x[sa[i]]=p++;
+        if(p>=len) break;
+        m=p;
+    }
+}
+int main()
+{
+    int T;
+    scanf("%d",&T);
+    for(int cas=1;cas<=T;++cas)
+    {
+        printf("Case #%d: ",cas);
+        scanf("%d",&len);
+        scanf("%s",s);
+        for(int i=0;i<len;++i) nx[i][0]=(1LL*i*i+1)%len;
+        for(int j=1;j<=18;++j)
+            for(int i=0;i<len;++i) nx[i][j]=nx[nx[i][j-1]][j-1];
+        getsa('9'+1);
+        int pos=sa[len-1];
+        for(int i=1;i<=len;++i,pos=nx[pos][0]) printf("%c",s[pos]);
+        printf("\n");
+    }
+
+   // for(int i=0;i<n;++i) printf("%d ",sa[i]);printf("\n");
+   // for(int i=0;i<n;++i) printf("%d ",rk[i]);printf("\n");
+   // for(int i=0;i<n;++i) printf("%d ",height[i]);printf("\n");
+    return 0;
+
+}

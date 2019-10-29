@@ -1,0 +1,82 @@
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+using namespace std;
+const int N = 10005;
+struct edge{int to,next,w;}a[N<<1];
+int n,m,k,head[N],cnt,root,sum,vis[N],sz[N],f[N],dep[N],o[N],ans;
+int gi()
+{
+    int x=0,w=1;char ch=getchar();
+    while ((ch<'0'||ch>'9')&&ch!='-') ch=getchar();
+    if (ch=='-') w=0,ch=getchar();
+    while (ch>='0'&&ch<='9') x=(x<<3)+(x<<1)+ch-'0',ch=getchar();
+    return w?x:-x;
+}
+void getroot(int u,int fa)
+{
+    sz[u]=1;f[u]=0;
+    for (int e=head[u];e;e=a[e].next)
+    {
+        int v=a[e].to;if (v==fa||vis[v]) continue;
+        getroot(v,u);
+        sz[u]+=sz[v];
+        f[u]=max(f[u],sz[v]);
+    }
+    f[u]=max(f[u],sum-sz[u]);
+    if (f[u]<f[root]) root=u;
+}
+void getdeep(int u,int fa)
+{
+    o[++cnt]=dep[u];
+    for (int e=head[u];e;e=a[e].next)
+    {
+        int v=a[e].to;if (v==fa||vis[v]) continue;
+        dep[v]=dep[u]+a[e].w;getdeep(v,u);
+    }
+}
+int calc(int u,int d0)
+{
+    cnt=0;dep[u]=d0;
+    getdeep(u,0);
+    sort(o+1,o+cnt+1);
+    int l=1,r=cnt,res=0;
+    while (l<r)
+        if (o[l]+o[r]<=k) res+=r-l,l++;
+        else r--;
+    return res;
+}
+void solve(int u)
+{
+    ans+=calc(u,0);
+    vis[u]=1;
+    for (int e=head[u];e;e=a[e].next)
+    {
+        int v=a[e].to;if (vis[v]) continue;
+        ans-=calc(v,a[e].w);
+        sum=sz[v];root=0;
+        getroot(v,0);
+        solve(root);
+    }
+}
+int main()
+{
+    while (1)
+    {
+        n=gi();k=gi();
+        if (n==0&&k==0) return 0;
+        memset(head,0,sizeof(head));
+        memset(vis,0,sizeof(vis));
+        cnt=0;ans=0;
+        for (int i=1,u,v,w;i<n;i++)
+        {
+            u=gi();v=gi();w=gi();
+            a[++cnt]=(edge){v,head[u],w};head[u]=cnt;
+            a[++cnt]=(edge){u,head[v],w};head[v]=cnt;
+        }
+        root=0;sum=f[0]=n;
+        getroot(1,0);
+        solve(root);
+        printf("%d\n",ans);
+    }
+}

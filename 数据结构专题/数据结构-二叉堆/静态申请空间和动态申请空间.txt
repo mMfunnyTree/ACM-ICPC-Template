@@ -1,0 +1,170 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+using namespace std;
+#define ll long long
+
+int t,n,a,ok;
+char s[100];
+
+struct trie
+{
+    trie *child[11];
+    bool qwq;
+    trie()
+    {
+        qwq=false;
+        memset(child,0,sizeof(child));
+    }
+};
+
+trie *root;
+trie *now,*next1;
+
+void insert(char *s)
+{
+    now=root;
+    int len = strlen(s);
+    for(int i=0;i<len;i++)
+    {
+        if(now->qwq==true)ok=0;
+        int m=s[i]-'0';
+        if(now->child[m]!=NULL)
+        {
+            now = now->child[m];
+        }
+        else
+        {
+            next1 = new trie;
+            now->child[m] = next1;
+            now = next1;
+        }
+        if(i==len-1)
+        {
+            now->qwq=true;
+        }
+    }
+    for(int i=0;i<10;i++)
+    {
+        if(now->child[i]!=NULL)
+            ok=0;
+    }
+}
+
+void removetrie(trie* u)
+{
+    if(u==NULL) return ;
+    for(int i=0;i<10;i++)
+        removetrie(u->child[i]);
+    delete u;
+}
+
+int main()
+{
+    cin>>t;
+    while(t--)
+    {
+        root = new trie;
+        ok=1;
+        cin>>n;
+        for(int i=0;i<n;i++)
+        {
+            scanf("%s",s);
+            insert(s);
+        }
+        cout<<((ok)?"YES\n":"NO\n");
+        removetrie(root);
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+using namespace std;
+#define ll long long
+
+int t,n,a,ok;
+int cnt;
+char s[100];
+
+struct trie
+{
+    trie *child[11];
+    bool qwq;
+    void init()
+    {
+        qwq=false;
+        memset(child,0,sizeof(child));
+    }
+
+}p[100005];
+
+inline trie* newtrie()
+{
+    p[cnt].init();
+    return &p[cnt++];
+}
+
+trie *root = NULL;
+trie *now,*next1;
+
+void insert(char *s)
+{
+    now = root;
+    next1 = NULL;
+    int len = strlen(s);
+    for(int i=0;i<len && ok;i++)
+    {
+        if(now->qwq==true){ok=0;return;}
+        int m=s[i]-'0';
+        if(now->child[m]!=NULL)
+        {
+            now = now->child[m];
+        }
+        else
+        {
+            next1 = newtrie();
+            now->child[m] = next1;
+            now = next1;
+        }
+        if(i==len-1)
+        {
+            now->qwq=true;
+        }
+    }
+    for(int i=0;i<10;i++)
+    {
+        if(now->child[i]!=NULL)
+            {ok=0;return ;}
+    }
+}
+
+int main()
+{
+    cin>>t;
+    while(t--)
+    {
+        cnt=0;
+        root = newtrie();
+        ok=1;
+        cin>>n;
+        for(int i=0;i<n;i++)
+        {
+            scanf("%s",s);
+            if(ok)insert(s);
+        }
+        cout<<((ok)?"YES\n":"NO\n");
+    }
+    return 0;
+}

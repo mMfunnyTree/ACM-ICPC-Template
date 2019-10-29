@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+char s[5][100005],c[100005];
+int fail[5][100005],len[5],nexts[5][100005][26],now;
+int save[5][110005];
+
+void getfail(char t[],int fail[],int k){
+    /**先构建fail指针，类似于kmp的next**/
+    fail[0]=fail[1]=0;
+    int l = len[k];
+    for(int i=1;i<l;i++){
+        int j = fail[i];
+        while(j && t[i]!=t[j])j=fail[j];
+        fail[i+1] = t[j]==t[i]?j+1:0;
+    }
+
+    for(int i=0;i<=l;i++){
+        for(int j=0;j<26;j++){
+            nexts[k][i][j] = nexts[k][fail[i]][j];
+        }
+        if(i!=l){
+            nexts[k][i][t[i]-'a']=i+1;
+        }
+    }
+    /**对于每个结点，都走26次转移，那么就把均摊O(1)变成稳定O(1)**/
+}
+
+int main(){
+    scanf("%d",&n);
+    for(int i=1;i<=n;i++){
+        scanf("%s",s[i]);
+        len[i]=strlen(s[i]);
+        getfail(s[i],fail[i],i);
+    }
+    scanf("%s",c);
+    int l = strlen(c);
+    int j[5] = {0};/**表示当前匹配的前缀位置**/
+    int temp = 0x3f3f3f3f;
+    for(int i=1;i<=n;i++){
+        temp = min(temp , len[i]);
+    }
+    printf("%d\n",temp);
+    for(int i=0;i<l;i++){
+        if(c[i]=='-'){
+            if(now)now--;
+            for(int k=1;k<=n;k++){
+                j[k] = save[k][now];/**从栈顶取出历史版本**/
+            }
+        }
+        else{
+            now++;
+            for(int k=1;k<=n;k++){
+                j[k] = nexts[k][j[k]][c[i]-'a'];/**转移到下一个位置**/
+            }
+        }
+        for(int k=1;k<=n;k++){
+            save[k][now]=j[k];/**保留历史版本**/
+        }
+        int ans=0x3f3f3f3f;
+        for(int k=1;k<=n;k++){
+            ans = min(ans , len[k]-j[k]);
+        }
+        printf("%d\n",ans);
+    }
+    return 0;
+}

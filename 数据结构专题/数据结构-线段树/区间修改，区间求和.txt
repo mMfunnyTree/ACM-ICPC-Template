@@ -1,0 +1,99 @@
+#include<iostream>
+#include<cstdio>
+
+using namespace std;
+
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid  int mid = (l+r)>>1
+#define maxn 100555
+typedef long long ll;
+
+int n,q;
+ll sum[maxn<<2],cur[maxn<<2];
+
+void push_up(int rt)
+{
+    sum[rt] = sum[rt<<1] + sum[rt<<1|1];
+}
+
+void push_down(int l,int r,int rt)
+{
+    if(cur[rt])
+    {
+        intmid;
+        cur[rt<<1]  += cur[rt];
+        cur[rt<<1|1]+= cur[rt];
+        sum[rt<<1]  += (mid-l+1)*cur[rt];
+        sum[rt<<1|1]+= (r-mid)*cur[rt];
+        cur[rt]=0;
+    }
+}
+
+void build(int l,int r,int rt)
+{
+    intmid;
+    cur[rt]=0;
+    if(l==r)
+    {
+        scanf("%lld",&sum[rt]);
+        return ;
+    }
+    push_down(l,r,rt);
+    build(lson);
+    build(rson);
+    push_up(rt);
+}
+
+void update(int ll,int rr,int val,int l,int r,int rt)
+{
+    intmid;
+    if( ll<=l && rr>=r )
+    {
+        cur[rt]+=val;
+        sum[rt]+=(r-l+1)*val;
+        return ;
+    }
+    push_down(l,r,rt);
+    if(ll<=mid)
+        update(ll,rr,val,lson);
+    if(rr>mid)
+        update(ll,rr,val,rson);
+    push_up(rt);
+}
+
+ll query(int ll,int rr,int l,int r,int rt)
+{
+    long long ret=0;
+    if(ll<=l && rr>=r)
+    {
+        return sum[rt];
+    }
+    push_down(l,r,rt);
+    intmid;
+    if(ll<=mid) ret += query(ll,rr,lson);
+    if(rr>mid) ret += query(ll,rr,rson);
+    return ret;
+}
+
+int main()
+{
+    cin>>n>>q;
+    build(1,n,1);
+    char s[2];
+    int a,b,c;
+    while(q--)
+    {
+        scanf("%s%d%d",s,&a,&b);
+        if(s[0]=='C')
+        {
+            scanf("%d",&c);
+            update(a,b,c,1,n,1);
+        }
+        else
+            printf("%lld\n",query(a,b,1,n,1));
+
+           // printf("%lld%lld%lld",sum[17],sum[9],sum[10]);
+    }
+    return 0;
+}

@@ -1,0 +1,79 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+
+struct SAM{
+    int pa[maxn<<1],son[maxn<<1][26];
+    int deep[maxn<<1],cnt,root,last;
+    int sg[maxn<<1];
+    inline int newnode(int _deep){
+        deep[++cnt]=_deep;
+        return cnt;
+    }
+    inline void sam(int alp){
+        int np=newnode(deep[last]+1);
+        int u=last;
+        memset(son[np],0,sizeof son[np]);
+        while(u&&!son[u][alp])son[u][alp]=np,u=pa[u];
+        if(!u)pa[np]=root;
+        else{
+            int v=son[u][alp];
+            if(deep[v]==deep[u]+1)pa[np]=v;
+            else{
+                int nv=newnode(deep[u]+1);
+                memcpy(son[nv],son[v],sizeof son[v]);
+                pa[nv]=pa[v],pa[v]=pa[np]=nv;
+                while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+            }
+        }last=np;
+    }
+    inline void pre(){
+        cnt=0;memset(son[1],0,sizeof son[1]);
+        root=last=newnode(0);
+        memset(sg,-1,sizeof sg);
+    }
+
+    void dfs(int u){
+        if(sg[u]>=0)return;
+        int vis[28]={0};
+        for(int i=0;i<26;++i)if(son[u][i]){
+            dfs(son[u][i]);
+            vis[sg[son[u][i]]]=1;
+        }
+        int res=-1;
+        for(int i=0;i<28;++i){
+            if(!vis[i]){
+                res=i;break;
+            }
+        }
+        sg[u]=res;
+    }
+}A;
+char s[maxn];
+int main(){
+    while(scanf("%s",s)!=EOF){
+        int lens = strlen(s);A.pre();
+        for(int i=0;i<lens;++i)A.sam(s[i]-'a');
+        A.dfs(A.root);
+        int n;scanf("%d",&n);
+        int ans=0;
+        while(n--){
+            scanf("%s",s);
+            lens = strlen(s);
+            int p=A.root;
+            for(int i=0;i<lens;++i){
+                if(A.son[p][s[i]-'a'])p = A.son[p][s[i]-'a'];
+                else{
+                    for(;p&&!A.son[p][s[i]-'a'];p=A.pa[p]);
+                    if(!p)p=A.root;
+                    else p=A.son[p][s[i]-'a'];
+                }
+            }
+            ans ^= A.sg[p];
+        }
+        if(ans)puts("Alice");
+        else puts("Bob");
+    }
+    return 0;
+}

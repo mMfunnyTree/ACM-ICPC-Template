@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int a[100005],b[100005];
+int n;
+
+int dfs1(int id)
+{
+	int ret=0;
+	int i = id,j;
+	while(a[i])
+	{
+		ret++;
+		j=i;
+		i=a[i];
+		a[j]=0;
+	}
+	return ret;
+}
+
+int dfs2(int id)
+{
+	int ret=0;
+	int i = b[id],j;
+	if(i)ret++;
+	else return 0;
+	while(a[i])
+	{
+		ret++;
+		j=i;
+		i=a[i];
+		a[j]=0;
+	}
+	return ret;
+}
+
+int main()
+{
+	while(scanf("%d",&n)!=EOF)
+	{
+		int ans=0;
+		for(int i=1;i<=n;i++) scanf("%d",a+i);
+		for(int i=1;i<=n;i++) scanf("%d",b+i);
+		for(int i=1;i<=n;i++)
+		{
+			if(a[i]==b[i])continue;
+			ans+=dfs1(i);
+		}
+		for(int i=1;i<=n;i++)
+		{
+			if(a[i]==b[i])continue;
+			ans+=dfs2(i);
+			a[i]=b[i];
+		}
+		printf("%d\n",ans);
+	}
+	
+	return 0;
+} 

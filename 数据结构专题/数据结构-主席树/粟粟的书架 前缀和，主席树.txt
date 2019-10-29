@@ -1,0 +1,132 @@
+在r*c的书架上，每本书都有页数。
+问在某个区间内的书本，至少多少本可以达到高度。
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+int R,C,M;
+
+int p[201][201];
+int pre[201][201][1001];
+int num[201][201][1001];
+void solve_by_pre(){
+    for(int i=1;i<=R;i++)
+        for(int j=1;j<=C;j++)
+            scanf("%d",&p[i][j]);
+    for(int k=1000;k;k--){
+        for(int i=1;i<=R;i++){
+            for(int j=1;j<=C;j++){
+                pre[i][j][k]=pre[i-1][j][k]+pre[i][j-1][k]-pre[i-1][j-1][k];
+                num[i][j][k]=num[i-1][j][k]+num[i][j-1][k]-num[i-1][j-1][k];
+                if(p[i][j]>=k)pre[i][j][k]+=p[i][j],num[i][j][k]++;
+            }
+        }
+    }
+    int x1,y1,x2,y2,h;
+    while(M--){
+        scanf("%d%d%d%d%d",&x1,&y1,&x2,&y2,&h);
+        int l=0,r=1001,mid;
+        while(r-l>1){
+            mid=l+r>>1;
+            if(pre[x2][y2][mid]-pre[x1-1][y2][mid]-pre[x2][y1-1][mid]+pre[x1-1][y1-1][mid]>=h)l=mid;
+            else	r=mid;
+        }
+        if(!l)	puts("Poor QLW");
+        else{
+            int cha = pre[x2][y2][l]-pre[x1-1][y2][l]-pre[x2][y1-1][l]+pre[x1-1][y1-1][l]-h;
+            if(cha<l){
+                printf("%d\n",num[x2][y2][l]-num[x1-1][y2][l]-num[x2][y1-1][l]+num[x1-1][y1-1][l]);continue;
+            }
+            int cntk= num[x2][y2][l+1]-num[x1-1][y2][l+1]-num[x2][y1-1][l+1]+num[x1-1][y1-1][l+1];
+            cntk*=-1;
+            cntk+= num[x2][y2][l]-num[x1-1][y2][l]-num[x2][y1-1][l]+num[x1-1][y1-1][l];
+            int ans=0;
+            if(cha / l <=cntk)	ans-=cha/l;
+            else	ans-=cntk;
+            printf("%d\n",num[x2][y2][l]-num[x1-1][y2][l]-num[x2][y1-1][l]+num[x1-1][y1-1][l] + ans);
+        }
+    }
+}
+
+const int maxn = 5e5+10;
+int a[maxn],T[maxn],tot;
+int c[maxn<<6],lson[maxn<<5],rson[maxn<<5];
+ll sum[maxn<<6];
+
+int build(int l,int r){
+    int rt=tot++;
+    if(l!=r){
+        int mid=l+r>>1;
+        lson[rt]=build(l,mid);rson[rt]=build(mid+1,r);
+    }return rt;
+}
+int ins(int rt,int pos,int val){
+    int nrt=tot++,tmp=nrt;
+    c[nrt]=c[rt]+1;sum[nrt]=sum[rt]+val;
+    int l=1,r=1000;
+    while(l<r){
+        int mid=l+r>>1;
+        if(pos<=mid){
+            lson[nrt]=tot++;
+            rson[nrt]=rson[rt];
+            nrt=lson[nrt];
+            rt=lson[rt];
+            r=mid;
+        }
+        else{
+            lson[nrt]=lson[rt];
+            rson[nrt]=tot++;
+            nrt=rson[nrt];
+            rt=rson[rt];
+            l=mid+1;
+        }
+        sum[nrt]=sum[rt]+val;c[nrt]=c[rt]+1;
+    }return tmp;
+}
+ll sum1,c1;
+void query(int l,int r,int lrt,int rrt,int k){
+    if(k<=l){
+        sum1+=sum[rrt]-sum[lrt];
+        c1+=c[rrt]-c[lrt];
+        return;
+    }
+    if(l==r)return;
+    int mid=l+r>>1;
+    if(k<=mid)query(l,mid,lson[lrt],lson[rrt],k);
+    if(k<=r)query(mid+1,r,rson[lrt],rson[rrt],k);
+}
+void solve_by_seg(){
+    for(int i=1;i<=C;i++)scanf("%d",a+i);
+    T[0]=build(1,1000);
+    for(int i=1;i<=C;i++)T[i]=ins(T[i-1],a[i],a[i]);
+    int x1,y1,x2,y2,h;
+    while(M--){
+        scanf("%d%d%d%d%d",&x1,&y1,&x2,&y2,&h);
+        int l=0,r=1001,mid;
+        while(r-l>1){
+            mid=l+r>>1;sum1=c1=0;
+            query(1,1000,T[y1-1],T[y2],mid);
+            if(sum1>=h)l=mid;
+            else r=mid;
+        }
+        if(!l)puts("Poor QLW");
+        else{
+            sum1=c1=0;
+            query(1,1000,T[y1-1],T[y2],l);
+            ll cha=sum1-h;
+            printf("%lld\n",c1-cha/l);
+        }
+    }
+}
+
+int main(){
+    scanf("%d%d%d",&R,&C,&M);
+    if(R==1){
+        solve_by_seg();
+    }
+    else{
+        solve_by_pre();
+    }
+    return 0;
+}

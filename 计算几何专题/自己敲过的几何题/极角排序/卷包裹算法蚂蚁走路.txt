@@ -1,0 +1,33 @@
+bool cmp2(point a,point b){
+    point c=tmp;
+    if(cross(c,a,b)==0)
+        return a.x<b.x;
+    else return cross(c,a,b)>0;
+}
+
+int main(){
+    int t;read(t);
+    point p[100];
+    while(t--){
+        int n;read(n);
+        double miny=105;
+        int id=1;
+        for(int i=1;i<=n;i++){
+            read(p[i].id,p[i].x,p[i].y);
+            if(miny>p[i].y){
+                miny=p[i].y;
+                id=i;
+            }
+        }
+        swap(p[id],p[1]);
+        for(int i=2;i<=n;i++){
+            tmp=p[i-1];
+            sort(p+i,p+1+n,cmp2);
+        }
+        print(n);
+        for(int i=1;i<=n;i++){
+            print(' ',p[i].id);
+        }print('\n');
+    }
+    return 0;
+}

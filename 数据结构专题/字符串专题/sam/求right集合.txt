@@ -1,0 +1,81 @@
+/**
+统计长度为[1..l]的子串最多出现了多少次
+
+关键问题在于统计某个串出现了多少次，
+在SAM中，答案就是包含这个串的状态的right集合的大小
+
+从trans DAG出发，right集合的大小就是从该状态走到end的方案数
+从parent树出发，每个结点的长度都是一个区间，只考虑最长串，
+用最长串去更新短串。
+**/
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 3e5+10;
+char s[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+int sum[maxn<<1],topo[maxn<<1];
+int arr[maxn<<1],ned[maxn<<1];
+int r[maxn<<1],f[maxn<<1];
+
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+
+inline void toposort(){
+    for(int a=1;a<=cnt;a++)sum[deep[a]]++;
+    for(int a=1;a<=deep[last];a++)sum[a]+=sum[a-1];
+    for(int a=1;a<=cnt;a++)topo[sum[deep[a]]--]=a;
+}
+
+inline void pre(){
+    root=last=newnode(0);
+}
+
+int main(){
+    scanf("%s",s);
+    pre();
+    memset(son[1],0,sizeof son[1]);
+    int len=strlen(s);
+    for(int a=0;a<len;a++)sam(s[a]-'a');
+
+    int tmp=root;
+    for(int a=0;a<len;a++){
+        tmp=son[tmp][s[a]-'a'];
+        r[tmp]=1;
+    }
+    /***将原串前缀状态的right集合大小设为1，
+    相当于在后缀树中将后缀结点标记为1**/
+    toposort();
+    /**deep[a] > deep[pa[a]]，所以排序，
+    用a状态更新pa[a]的状态，只考虑结点的deep便可
+    **/
+    for(int a=cnt;a>=1;a--)r[pa[topo[a]]] += r[topo[a]];/**right表示状态在整个串出现次数**/
+    for(int a=1;a<=cnt;a++)f[deep[a]] = max(f[deep[a]] , r[a]);/**只更新最长串**/
+    for(int a=len;a>=1;a--)f[a-1]=max(f[a],f[a-1]);/**长串更新短串：短串包含在长串里面**/
+    for(int i=1;i<=len;i++)printf("%d\n",f[i]);
+    return 0;
+}

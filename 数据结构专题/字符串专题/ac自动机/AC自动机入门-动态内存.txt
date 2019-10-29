@@ -1,0 +1,135 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define maxn 500005
+
+char s[1000006];
+
+struct node
+{
+    int cnt;
+    node *fail;
+    node *child[26];
+    node()
+    {
+        cnt=0;
+        fail = NULL;
+        memset(child,0,sizeof(child));
+    }
+}*que[maxn];
+
+void insert(node *head,char *keyword)
+{
+    int len = strlen(keyword);
+    node *p = head;
+    for(int i=0;i<len;i++)
+    {
+        int id = keyword[i] -'a';
+        if(p->child[id]==NULL)
+        {
+            p->child[id] = new node;
+        }
+        p = p->child[id];
+    }
+    p->cnt++;
+}
+
+void buildAC(node *root)
+{
+    int head=0,tail=0;
+    que[tail++] = root;
+    while(tail!=head)
+    {
+        node *p = que[head++];
+        for(int i=0;i<26;i++)
+        {
+            if(p->child[i]!=NULL)
+            {
+                if(p==root)
+                {
+                    p->child[i]->fail = root;
+                }
+                else
+                {
+                    node *temp = p->fail;
+                    while(temp!=NULL)
+                    {
+                        if(temp->child[i] !=NULL)
+                        {
+                            p->child[i]->fail = temp->child[i];
+                            break;
+                        }
+                        temp = temp->fail;
+                    }
+                    if(temp==NULL)
+                    {
+                        p->child[i]->fail = root;
+                    }
+                }
+                que[tail++] = p->child[i];
+            }
+        }
+    }
+}
+
+int query(node *root)
+{
+    int ret = 0;
+    int len = strlen(s);
+    node *p = root;
+    for(int i=0;i<len;i++)
+    {
+        int id = s[i]-'a';
+        while(p!=root && p->child[id] == NULL)
+        {
+            p = p->fail;
+        }
+        p = p->child[id];
+        if(p==NULL)
+        {
+            p = root;
+        }
+        node *temp = p;
+        while(temp != root && temp->cnt != -1)
+        {
+            ret += temp->cnt;
+            temp->cnt = -1;
+            temp = temp->fail;
+        }
+    }
+    return ret;
+}
+
+void deletenode(node *u)
+{
+    if(u==NULL)return;
+    for(int i=0;i<26;i++)
+    {
+        deletenode(u->child[i]);
+    }
+    delete u;
+}
+
+int main()
+{
+    char keyword[55];
+    int ca;cin>>ca;
+    node *root = NULL;
+    int n;
+
+    while(ca--)
+    {
+        scanf("%d",&n);
+        root = new node;
+        for(int i=0;i<n;i++)
+        {
+            scanf("%s",keyword);
+            insert(root,keyword);
+        }
+        buildAC(root);
+        scanf("%s",s);
+        printf("%d\n",query(root));
+        deletenode(root);
+    }
+    return 0;
+}

@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+int n,k;
+struct node
+{
+    int s,e;
+}p[100005];
+
+bool cmp(node a,node b)
+{
+    return a.e<b.e;
+}
+
+multiset<int> st;
+multiset<int>::iterator it;
+
+int main()
+{
+    cin>>n>>k;
+    for(int i=1;i<=n;i++)
+        scanf("%d%d",&p[i].s,&p[i].e);
+
+    sort(p+1,p+1+n,cmp);
+
+    int ans=0;
+    for(int i=1;i<=k;i++)
+    {
+        st.insert(0);
+    }
+    
+    for(int i=1;i<=n;i++)
+    {
+        it = st.upper_bound(p[i].s);
+        if(it!=st.begin())
+        {
+            ans++;
+            it--;
+            st.erase(it);
+            st.insert(p[i].e);
+        }
+    }
+    cout<<ans<<endl;
+    return 0;
+}

@@ -1,0 +1,59 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 2e5+1;
+
+/**
+167 e5
+**/
+int n,lim,tot,m;
+int a[maxn],t[maxn];
+int T[maxn],lson[maxn*20],rson[maxn*20],c[maxn*20];
+int cc[maxn*20];
+
+void init_hs(){
+    for(int i=1;i<=n;i++){
+        t[i]=a[i];
+    }sort(t+1,t+1+n);
+    m = unique(t+1,t+1+n)-t-1;
+}
+int hs(int x){return lower_bound(t+1,t+1+m,x)-t;}
+void update(int &u,int p,int l,int r){
+    ++tot;lson[tot]=lson[u];rson[tot]=rson[u];c[tot]=c[u]+1;cc[tot]=min((int)1e9+7,cc[u]+t[p]);
+    u=tot;
+    if(l==r)return;
+    int mid=l+r>>1;
+    if(p<=mid)update(lson[u],p,l,mid);
+    else      update(rson[u],p,mid+1,r);
+}
+int query(int root,int lim){
+    int l=1,r=m;
+    int ret=0;
+    while(l<r){
+        int mid=l+r>>1;
+        if(cc[lson[root]]<=lim ){
+            lim -= cc[lson[root]];ret+=c[lson[root]];
+            l=mid+1;
+            root=rson[root];
+        }
+        else{
+            r=mid;root=lson[root];
+        }
+    }
+    ret+=lim/t[l];return ret;
+}
+int main(){
+    int t;cin>>t;
+    while(t--){
+        tot=1;
+        scanf("%d%d",&n,&lim);
+        for(int i=1;i<=n;++i)scanf("%d",a+i);
+        init_hs();
+        for(int i=1;i<=n;++i){
+            printf("%d ",max(0,i-1-query(T[i-1],lim-a[i])) );
+            T[i]=T[i-1];
+            update(T[i],hs(a[i]),1,m);
+        }puts("");
+    }
+    return 0;
+}

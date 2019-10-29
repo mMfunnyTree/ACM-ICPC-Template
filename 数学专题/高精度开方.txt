@@ -1,0 +1,54 @@
+import java.util.*;
+import java.math.*;
+public class Main{
+	//二分开根板子
+    public static BigInteger check(BigInteger n,BigInteger x) {
+        BigInteger ans=BigInteger.valueOf(1);
+        BigInteger a=BigInteger.valueOf(1);
+        for(BigInteger i=BigInteger.ZERO;i.compareTo(n)<0;i=i.add(a)) {
+            ans=ans.multiply(x);
+        }
+        return ans;
+    }
+    static BigInteger Get(BigInteger m) {
+    	BigInteger l=BigInteger.ZERO;
+        BigInteger a=BigInteger.valueOf(2);
+        BigInteger b=BigInteger.valueOf(1);
+        BigInteger r=BigInteger.valueOf(1);
+        BigInteger mid=BigInteger.ZERO;
+        while(check(BigInteger.valueOf(2),r).compareTo(m)<=0) {
+            l=r;
+            r=r.multiply(a);
+        }
+        while(l.compareTo(r)<=0) {
+            mid=l.add(r).divide(a);
+            if(check(BigInteger.valueOf(2),mid).compareTo(m)<=0) l=mid.add(b);
+            else r=mid.subtract(b);
+        }
+        return r;
+    }
+    public static void main(String[]args) {
+    	int T;
+        Scanner sca=new Scanner(System.in);
+        T=sca.nextInt();
+        while(T--!=0) {
+        	BigInteger m=sca.nextBigInteger();
+            BigInteger res1=Get(m);
+            BigInteger n;
+            n=m.multiply(m.subtract(BigInteger.ONE)).divide(BigInteger.valueOf(2));
+            BigInteger res2=Get(n);
+            BigInteger tmp1=res1.multiply(res1);
+            BigInteger tmp2=res2.multiply(res2);
+            if(tmp1.equals(m)&&tmp2.equals(n)) {
+            	System.out.println("Arena of Valor");
+            }
+            else if(tmp1.compareTo(m)==0&&tmp2.compareTo(n)!=0) {
+            	System.out.println("Hearth Stone");
+            }
+            else if(tmp1.compareTo(m)!=0&&tmp2.compareTo(n)==0) {
+            	System.out.println("Clash Royale");
+            }
+            else System.out.println("League of Legends");
+        }
+    }
+}

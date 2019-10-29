@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 10;
+const int maxn = 2e6+10;
+const int mod = 1e9+7;
+char s[maxn];
+
+ll qpow(ll a,ll n){
+    ll ret=1;
+    while(n){
+        if(n&1)ret=ret*a%mod;
+        a=a*a%mod;
+        n>>=1;
+    }return ret;
+}
+
+struct pam{
+    int next[maxn][N],fail[maxn];
+    int len[maxn],S[maxn];
+    int cnt[maxn],num[maxn];
+    int ppos[maxn],number[maxn];
+    int last,n,p;
+    int newnode(int l){
+        for(int i=0;i<N;i++)next[p][i]=0;
+        cnt[p]=num[p]=0;
+        len[p]=l;
+        return p++;
+    }
+    void init(){
+        p=0;
+        newnode(0);newnode(-1);
+        last=n=0;
+        S[n]=-1;
+        fail[0]=1;
+    }
+    int get_fail(int x){
+        while(S[n-len[x]-1]!=S[n])x=fail[x];
+        return x;
+    }
+    void add(int c,int pos){
+        c-='0';
+        S[++n]=c;
+        int cur=get_fail(last);
+        //printf("%d:%d ",p,cur);
+        if(!next[cur][c]){
+            int now=newnode(len[cur]+2);
+            ppos[now]=pos;
+            fail[now]=next[get_fail(fail[cur])][c];
+            next[cur][c]=now;
+            number[now] = ((10ll*number[cur])%mod+c)%mod;
+            if(len[cur]>=0){
+                number[now]=(number[now]+1ll*c*qpow(10,len[cur]+1)%mod)%mod;
+            }
+            num[now]=num[fail[now]]+1;
+            //for(int i=pos-len[now]+1;i<=pos;i++)printf("%c",s[i]);
+        }
+        last = next[cur][c];
+        cnt[last]++;
+        //putchar(10);
+    }
+    void count(){
+        ll ret=0;
+        for(int i=p-1;i>=0;i--){
+            cnt[fail[i]]+=cnt[i];
+            ret=(ret+number[i])%mod;
+        }cout<<ret<<endl;
+    }
+}run;
+
+int hs[maxn],po[maxn];
+ll geth(int l,int r){
+    ll ret=hs[r]-1ll*hs[l-1]*po[r-l+1]%mod;
+    ret%=mod;ret+=mod;ret%=mod;
+    return ret;
+}
+
+int main(){
+    po[0]=1;
+    for(int i=1;i<maxn;i++)po[i]=1ll*po[i-1]*10%mod;
+    while(scanf("%s",s+1)!=EOF){
+        int len=strlen(s+1);
+        run.init();
+        for(int i=1;i<=len;i++){
+            run.add(s[i],i);
+            hs[i]=(1ll*hs[i-1]*10+(s[i]-'0'))%mod;
+        }
+        run.count();
+//        ll ans=0;
+//        for(int i=2;i<run.p;i++){
+//            ans=(ans+geth(run.ppos[i]-run.len[i]+1,run.ppos[i]))%mod;
+//        }
+//        cout<<ans<<endl;
+    }
+    return 0;
+}
+

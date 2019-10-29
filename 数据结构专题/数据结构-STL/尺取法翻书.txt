@@ -1,0 +1,36 @@
+题目：Jessica's Reading Problem
+题意：一本书有p页，每页有一个知识点，用一个数字表示
+输入p页的知识点内容
+输出至少看多少页可以复习完所有知识点
+
+尺取法
+int main()
+{
+    while(scanf("%d",&p)!=EOF)
+    {
+        map<int,int> m;					//记录每种知识点出现的次数
+        m.clear();
+        int sum=0;
+        for(int i=1;i<=p;i++)
+        {
+            scanf("%d",&a[i]);
+            m[a[i]]++;
+            if(m[a[i]]==1)sum++;
+        }m.clear();
+        int ans = p;
+        int r=1,cnt=0;					// r 表示往右看的最右页，cnt 表示从第 i 页到第 r 页能看的最多知识点
+        for(int i=1;i<=p;i++)//左边界遍历
+        {
+            while(r<=p&&cnt<sum)//右边界到达p时不考虑
+            {
+                cnt += ((m[a[r++]]++) == 0);
+            }
+            if(cnt==sum)
+                ans = min(ans , r - i);			//取小值
+            else break;
+            m[a[i]]--;					//从 i+1开始看，本页知识点次数要减一
+            cnt -= (!m[a[i]]);				//如果减一后，该知识点为0 ， cnt要减去该知识点
+        }cout<<ans<<endl;
+    }
+    return 0;
+}

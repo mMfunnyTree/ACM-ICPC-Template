@@ -1,0 +1,116 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <queue>
+using namespace std;
+
+#define maxn 2000006
+
+char str[1101][55];
+char s[maxn];
+int ans[1111];
+
+struct node
+{
+    int id;
+    node*fail;
+    node*child[26];
+    void nod()
+    {
+        id=0;
+        fail=NULL;
+        memset(child,0,sizeof(child));
+    }
+}*root;
+
+void insert(char*s,int id)
+{
+    int len = strlen(s);
+    node*p = root;
+    for(int i=0;i<len;i++)
+    {
+        int m = s[i]-'A';
+        if(p->child[m]==NULL)
+        {
+            p->child[m]= new node;
+            p->child[m]->nod();
+        }
+        p=p->child[m];
+    }
+    p->id=id;
+}
+
+void getfail()
+{
+    queue<node*>q;
+    q.push(root);
+    while(!q.empty())
+    {
+        node* p = q.front();
+        q.pop();
+        for(int i=0;i<26;i++)
+        {
+            if(p->child[i]!=NULL)
+            {
+                if(p==root)
+                    p->child[i]->fail = root;
+                    node* t = p->fail;
+                while(t && !t->child[i])
+                    t = t->fail;
+                if(t)
+                    p->child[i]->fail = t->child[i];
+                else
+                    p->child[i]->fail = root;
+                q.push(p->child[i]);
+            }
+        }
+    }
+}
+
+void acsearch(char *s)
+{
+    node *p = root;
+    int len = strlen(s);
+    for(int i=0;i<len;i++)
+    {
+        if(s[i]<'A'||s[i]>'Z'){p=root;continue;}
+        int m = s[i]-'A';
+        while(p!=root && p->child[m]==NULL)
+            p = p->fail;
+
+        if(p->child[m])
+            p = p->child[m];
+
+        node* t = p ;
+        while(t!=root && t->id)
+        {
+            ans[t->id]++;
+            t = t->fail;
+        }
+    }
+}
+
+int main()
+{
+    int n;
+    while(scanf("%d",&n)!=EOF){
+    root = new node;
+    root->nod();
+    memset(ans,0,sizeof(ans));
+    for(int i=1;i<=n;i++)
+    {
+        scanf("%s",str[i]);
+        insert(str[i],i);
+    }
+    getfail();
+    scanf("%s",s);
+    acsearch(s);
+
+    for(int i=1;i<=n;i++)
+    {
+        if(ans[i])
+            printf("%s: %d\n",str[i],ans[i]);
+    }
+    }
+    return 0;
+}

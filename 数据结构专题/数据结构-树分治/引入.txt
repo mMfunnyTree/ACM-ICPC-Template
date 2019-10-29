@@ -1,0 +1,85 @@
+题目：给一棵边权无根树，问是否有点对距离为k
+思路：暴力枚举所有点对，复杂度O(n^2logn)
+有性质：任意点对的距离，
+要么经过根节点
+要么不经过根结点
+经过根结点时 dis(u,v) = dis(u,rt) + dis(rt,v)
+不经过时，我们递归讨论。
+如果递归层数过大，复杂度任然爆炸。
+有结论：找到树的重心后，均摊复杂度nlogn。
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 1e5+10;
+
+int n,m;
+int rt,sum,f[maxn];
+int head[maxn],ecnt;
+struct edge{int to,nxt,w;}e[maxn<<1];
+void adde(int u,int v,int w){
+    e[++ecnt]={v,head[u],w};head[u]=ecnt;
+}
+int qr[maxn],vs[maxn];
+int vis[maxn],siz[maxn];
+int dis[maxn];
+int pd[maxn];
+void getroot(int u,int pre){
+    f[u]=0,siz[u]=1;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==pre||vis[v])continue;
+        getroot(v,u);
+        siz[u]+=siz[v];
+        f[u]=max(f[u],siz[v]);
+    }f[u]=max(f[u],sum-siz[u]);
+    if(f[u]<f[rt])rt=u;
+}
+int rem[maxn],q[maxn];
+void getdis(int u,int fa){
+    rem[++rem[0]]=dis[u];
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==fa||vis[v])continue;
+        dis[v]=dis[u]+e[i].w;
+        getdis(v,u);
+    }
+}
+void calc(int u){
+    int p=0;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(vis[v])continue;
+        rem[0]=0;dis[v]=e[i].w;
+        getdis(v,u);
+        for(int j=rem[0];j;--j){
+            for(int k=1;k<=m;++k){
+                if(qr[k]>=rem[j])vs[k]|=pd[qr[k]-rem[j]];
+            }
+        }
+        for(int j=rem[0];j;--j){
+            q[++p]=rem[j],pd[rem[j]]=1;
+        }
+    }
+    for(int i=1;i<=p;++i)pd[q[i]]=0;
+}
+void solve(int u){
+    vis[u]=pd[0]=1;calc(u);//pd[i]表示到根距离为i的路径是否存在
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(vis[v])continue;
+        f[0]=n;sum=siz[v];rt=0;
+        getroot(v,0);solve(rt);//在子树找到重心并递归处理
+    }
+}
+int main(){
+    scanf("%d%d",&n,&m);
+    f[0]=sum=n;
+    int u,v,w;
+    for(int i=2;i<=n;++i){
+        scanf("%d%d%d",&u,&v,&w);adde(u,v,w);adde(v,u,w);
+    }
+    for(int i=1;i<=m;++i)scanf("%d",qr+i);//离线查询
+    rt=0;getroot(1,0);solve(rt);//找整个树的重心，然后分治
+    for(int i=1;i<=m;++i)puts(vs[i]?"AYE":"NAY");
+    return 0;
+}

@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn=6005;
+struct point{
+    ll x,y;
+    point(ll x=0,ll y=0):x(x),y(y){}
+    bool operator<(const point &b)const{if(x<b.x)return 1;if(x>b.x)return 0;return y<b.y;}
+    bool operator==(const point &b)const{return x==b.x&&y==b.y;}
+    point operator -(const point &b)const{return point(x-b.x,y-b.y);}
+    ll operator ^(const point &b)const{return (x*b.y-y*b.x);}
+}p[maxn],stk[maxn];
+int n;
+int andrew(){
+    sort(p+1,p+1+n);
+    int len=2;stk[1]=p[1];stk[2]=p[2];
+    for(int i=3;i<=n;i++){
+        while(len>1 && ((stk[len]-stk[len-1])^(p[i]-stk[len-1]))>=0 )len--;
+        stk[++len]=p[i];
+    }int k=len;
+    for(int i=n-1;i>=1;i--){
+        while(len>k && ((stk[len]-stk[len-1])^(p[i]-stk[len-1]))>=0 )len--;
+        stk[++len]=p[i];
+    }return len;
+}
+bool cmp2(point a,point b){return atan2(a.y,a.x)<atan2(b.y,b.x);}
+bool cmp3(point a,point b){return (a^b)>0;}
+ll mj(point a,point b,point c){return abs((b-a)^(c-a));}
+ll ok(point a,point b,point c,point d){
+    ll abc=mj(a,b,c);
+    ll acd=mj(a,c,d);
+    ll abd=mj(a,b,d);
+    ll bcd=mj(b,c,d);
+    if(abc+acd>abd)return abc+acd;
+    return min(abc+min(bcd,acd) ,bcd+acd );
+}
+ll dp1[maxn][maxn],dp2[maxn][maxn];
+int main(){
+    //freopen("01.in","r",stdin);
+    scanf("%d",&n);
+    if(n<=3){puts("0 0");return 0;}
+    for(int i=1;i<=n;i++)scanf("%lld%lld",&p[i].x,&p[i].y);
+    ll A=0,B=9e18;
+    int t=andrew()-1;
+    if(t==3){
+        ll aa=mj(stk[1],stk[2],stk[3]);
+        for(int i=1;i<=n;i++){
+            if(p[i]==stk[1]||p[i]==stk[2]||p[i]==stk[3])continue;
+            ll aaa=0;
+            aaa=max(aaa,aa-mj(stk[1],stk[2],p[i]));
+            aaa=max(aaa,aa-mj(stk[1],stk[3],p[i]));
+            aaa=max(aaa,aa-mj(stk[2],stk[3],p[i]));
+            A=max(A,aaa);
+        }goto ed;
+    }
+    for(int i=t+1;i<=2*t+1;i++)stk[i]=stk[i-t];
+    for(int i=1;i<=2*t;i++){
+        int j=i+1;if(j==2*t+1)j=1;
+        int k=j+1;if(k==2*t+1)k=1;
+        while(i!=k){
+            while(j!=k&&((stk[k]-stk[i])^(stk[j]-stk[i])) < ((stk[k]-stk[i])^(stk[j+1]-stk[i]))){
+                j++;if(j==2*t+1)j=1;
+            }
+            dp1[i][k]=max(dp1[i][k],mj(stk[i],stk[j],stk[k]));
+            k++;if(k==2*t+1)k=1;
+        }
+    }
+    for(int i=1;i<=t;i++){
+        for(int j=i+1;j<=t;j++){
+            A=max(A,dp1[i][j]+dp1[j][t+i]);
+        }
+    }
+    ed:;
+    point pp[maxn];
+    for(int i=1;i<=n;i++){
+        point mi=p[i];
+        int cnt=0;
+        for(int j=1;j<=n;j++){
+            if(i==j)continue;
+            pp[++cnt]=p[j]-mi;
+        }sort(pp+1,pp+1+cnt,cmp3);
+        for(int j=1;j+2<=cnt;j++){
+            B=min(B,ok(point(0,0),pp[j],pp[j+1],pp[j+2]));
+        }
+    }
+    cout<<B<<" "<<A<<endl;
+    return 0;
+}

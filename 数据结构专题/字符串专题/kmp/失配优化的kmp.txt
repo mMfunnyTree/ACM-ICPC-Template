@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+int len[5];
+int ans[100005];
+char ch[5][100005];
+char pro[100005];
+int f[100005];
+int f2[100005];
+int lenp;
+int q[100005];
+
+void getfail(char *p,int len){
+    f[0]=f[1]=f2[0]=f2[1]=0;
+    for(int i=1;i<len;i++){
+        int j=f2[i];
+        while(j&&p[i]!=p[j])j=f2[j];
+        f2[i+1] = f[i+1] = (p[i]==p[j])?j+1:0;
+        if(f[i+1]==j+1 && p[i+1]==p[j+1])f[i+1]=f[j+1];
+    }
+    /**
+    带退格的优化kmp：
+    当在p[i+1]的位置失配的时候，如果普通kmp的p[i+1]指向p[j+1]
+    并且他们相同，那么下次匹配依旧还是失配的，就会继续跳到p[f[j+1]]
+    如此下来失配的时候刚好会跳到本该在的位置
+    **/
+}
+
+void kmp(char *t,char *s,int id){
+    getfail(s,len[id]);
+    int j=0;
+    q[0]=0;
+    int r=0;
+    for(int i=0;i<lenp;i++){
+        if(t[i]=='-'){
+            if(r)r--;
+            j=q[r];
+        }
+        else{
+            while(j&&s[j]!=t[i])j=f[j];
+            if(s[j]==t[i])j++;
+            q[++r]=j;
+        }
+        ans[i] = min(ans[i] , len[id] - q[r]);
+    }
+}
+
+int main(){
+    scanf("%d",&n);
+    int temp=0x3f3f3f3f;
+    for(int i=0;i<n;i++){
+        scanf("%s",ch[i]);
+        len[i]=strlen(ch[i]);
+        temp=min(temp,len[i]);
+    }
+    printf("%d\n",temp);
+    memset(ans,0x3f,sizeof ans);
+    scanf("%s",pro);
+    lenp=strlen(pro);
+    for(int i=0;i<n;i++){
+        kmp(pro,ch[i],i);
+    }
+    for(int i=0;i<lenp;i++){
+        printf("%d\n",ans[i]);
+    }
+    return 0;
+}

@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define M 1000010
+int prime[M],e[M],div_num[M];
+int d[M];
+bool flag[M];
+void init()
+{
+    int i,j,k;
+    memset(flag,false,sizeof(flag));
+    k=0;
+    div_num[1]=1;
+    for(i=2; i<M; i++)
+    {
+        if(!flag[i])
+        {
+            prime[k++]=i;
+            e[i]=1;
+            div_num[i]=2;
+        }
+        for(j=0; j<k&&i*prime[j]<M; j++)
+        {
+            flag[i*prime[j]]=true;
+            if(i%prime[j]==0)
+            {
+                div_num[i*prime[j]]=div_num[i]/(e[i]+1)*(e[i]+2);
+                e[i*prime[j]]=e[i]+1;
+                break;
+            }
+            else
+            {
+                div_num[i*prime[j]]=div_num[i]*div_num[prime[j]];
+                e[i*prime[j]]=1;
+            }
+        }
+    }
+    for(int i=1;i<M;i++)
+        for(int j=i;j<M;j+=i)
+            d[j]++;
+    for(int i=1;i<M;i++)
+        if(d[i]!=div_num[i])cout<<i<<endl;
+}
+
+int main()
+{
+
+    init();
+}

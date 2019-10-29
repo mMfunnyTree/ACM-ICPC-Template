@@ -1,0 +1,69 @@
+/*ax+by+c=0   (x1,y1),(x2,y2)
+
+a = y1-y2;
+b = x2-x1;
+c = x1*y2 - x2*y1;
+
+两线交点坐标：
+
+x = (c2*b1-c1*b2)/(b2*a1-b1*a2);
+y = (a2*c1-a1*c2)/(b2*a1-b1*a2);
+D = (b2*a1-b1*a2);D=0表示两线平行或重合
+
+*/
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+using namespace std;
+const double eps = 1e-8;
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+};
+point o;
+
+int sig(double x){
+    return (x>eps) - (x<-eps);
+}
+
+double cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+int check(point p1,point p2,point p3,point p4){
+    int r1=sig(cross(p1,p2,p3));
+    int r2=sig(cross(p1,p2,p4));
+    if(!r1 && !r2)return 1;
+    if(sig((p1.x-p2.x)*(p3.y-p4.y) - (p3.x-p4.x)*(p1.y-p2.y))==0)return 2;
+
+    double a1=p1.y-p2.y;
+    double b1=p2.x-p1.x;
+    double c1=p1.x*p2.y-p2.x*p1.y;
+    double a2=p3.y-p4.y;
+    double b2=p4.x-p3.x;
+    double c2=p3.x*p4.y-p4.x*p3.y;
+    o = point((c2*b1-c1*b2)/(b2*a1-b1*a2),(a2*c1-a1*c2)/(b2*a1-b1*a2));
+    return 0;
+}
+
+int main(){
+    int t;scanf("%d",&t);
+    puts("INTERSECTING LINES OUTPUT");
+    point p1,p2,p3,p4;
+    while(t--){
+        scanf("%lf%lf%lf%lf%lf%lf%lf%lf",&p1.x,&p1.y,&p2.x,&p2.y,&p3.x,&p3.y,&p4.x,&p4.y);
+        int op=check(p1,p2,p3,p4);
+        if(op==1){
+            puts("LINE");continue;
+        }
+        if(op==2){
+            puts("NONE");continue;
+        }
+        printf("POINT %.2f %.2f\n",o.x,o.y);
+    }
+    puts("END OF OUTPUT");
+    return 0;
+}

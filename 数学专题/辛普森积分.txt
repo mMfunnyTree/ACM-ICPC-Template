@@ -1,0 +1,30 @@
+#include<stdio.h>
+#include<string.h>
+#include<math.h>
+#define eps 0.0000001
+double r1,r2;
+double F(double x)
+{
+    return 8*sqrt((r1*r1-x*x)*(r2*r2-x*x));
+}
+double cal(double l, double r)
+{
+    return (r-l)/6.0*(F(r)+4.0*F((r+l)/2.0)+F(l));
+}
+double simpson(double l,double r)
+{
+    double m=(l+r)/2.0;
+    double fl=cal(l,m),fr=cal(m,r);
+    if(fabs(fl+fr-cal(l,r))<eps) return fr+fl;
+    else return simpson(l,m)+simpson(m,r);
+}
+int main()
+{
+    freopen("twocyl.in","r",stdin);
+    freopen("twocyl.out","w",stdout);
+    scanf("%lf%lf",&r1,&r2);
+    double minr;
+    if(r1<r2) minr=r1;
+    else minr=r2;
+    printf("%.6f\n",simpson(0,minr));
+}

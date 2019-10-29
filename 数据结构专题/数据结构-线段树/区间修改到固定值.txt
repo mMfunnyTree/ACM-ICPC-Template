@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid  int mid = (l+r)>>1
+#define maxn 50555
+typedef long long ll;
+
+int n,m;
+int t[101][5001],f[101][5001];
+
+int minv[maxn<<2],cur[maxn<<2];
+
+void push_down(int l,int r,int rt)
+{
+    if(~cur[rt])
+    {
+        if(~cur[rt<<1])cur[rt<<1]=min(cur[rt<<1],cur[rt]);
+        else cur[rt<<1]=cur[rt];
+        if(~cur[rt<<1|1])cur[rt<<1|1]=min(cur[rt<<1|1],cur[rt]);
+        else cur[rt<<1|1]=cur[rt];
+        minv[rt<<1]=min(minv[rt<<1],cur[rt]);
+        minv[rt<<1|1]=min(minv[rt<<1|1],cur[rt]);
+        cur[rt]=-1;
+    }
+}
+
+void push_up(int rt)
+{
+    minv[rt]=min(minv[rt<<1],minv[rt<<1|1]);
+}
+
+void build(int l,int r,int rt,int i)
+{
+    minv[rt]=cur[rt]=-1;
+    if(l==r)
+    {
+        minv[rt]=t[i][l];
+        return;
+    }
+    intmid;
+    build(lson,i);build(rson,i);
+    push_up(rt);
+}
+
+void debug(int l,int r,int rt)
+{
+    push_down(l,r,rt);
+    if(l==r)
+    {
+        cout<<minv[rt]<<" ";return;
+    }
+    intmid;
+    debug(lson);debug(rson);
+    push_up(rt);
+}
+
+void update(int L,int R,int v,int l,int r,int rt)
+{
+    intmid;
+    if(L<=l&&r<=R)
+    {
+        if(~cur[rt])cur[rt]=min(cur[rt],v);
+        else cur[rt]=v;
+        if(~minv[rt])minv[rt]=min(minv[rt],v);
+        else minv[rt]=v;
+        return;
+    }
+    push_down(l,r,rt);
+    if(L<=mid)update(L,R,v,lson);
+    if(R>mid)update(L,R,v,rson);
+    push_up(rt);
+}
+
+int query(int L,int R,int l,int r,int rt)
+{
+    push_down(l,r,rt);
+    if(L<=l&&r<=R)
+    {
+        return minv[rt];
+    }
+    intmid;
+    int ret=0x3f3f3f3f;
+    if(L<=mid)ret=min(ret,query(L,R,lson));
+    if(R>mid)ret=min(ret,query(L,R,rson));
+    return ret;
+}
+
+int main()
+{
+    while(scanf("%d%d",&n,&m)&&n)
+    {
+        for(int i=1;i<=n;i++)
+            for(int j=1;j<=m;j++)
+                scanf("%d",&t[i][j]);
+        for(int i=1;i<=n;i++)
+            for(int j=1;j<=m;j++)
+                scanf("%d",&f[i][j]);
+
+        for(int i=1;i<=n;i++)
+        {
+            build(1,m,1,i);
+            for(int j=1;j<=m;j++)
+            {
+                update(max(1,j-f[i][j]),
+                       min(m,j+f[i][j]),
+                       t[i][j],1,m,1);
+            }
+            if(i==n)break;
+            for(int j=1;j<=m;j++)
+            {
+                t[i+1][j]+=query(max(1,j-f[i+1][j]),
+                                min(m,j+f[i+1][j]),
+                                1,m,1);
+            }
+        }
+        int ans=0x3f3f3f3f;
+        for(int j=1;j<=m;j++)
+            ans=min(ans,t[n][j]);
+        cout<<ans<<endl;
+    }
+    return 0;
+}

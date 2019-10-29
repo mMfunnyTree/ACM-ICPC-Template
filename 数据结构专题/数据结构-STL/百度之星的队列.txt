@@ -1,0 +1,54 @@
+map<int,deque<int> > mp;
+/*  合并两个队列  */
+if (w == 0) {
+    mq[u].insert(mq[u].end(), mq[v].begin(), mq[v].end());
+    mq[v].clear();
+}
+else {
+    mq[u].insert(mq[u].end(), mq[v].rbegin(), mq[v].rend());
+    mq[v].clear();
+}
+
+
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+list<int> mp[300005];
+int main(){
+    //freopen("a.in","r",stdin);
+    int t;scanf("%d",&t);
+    while(t--){
+        int n,q;scanf("%d%d",&n,&q);
+        for(int i=1;i<=n;i++){
+            mp[i].clear();
+        }
+        int op,a,b;
+        while(q--){
+            scanf("%d",&op);
+            if(op==1){
+                scanf("%d%d",&a,&b);
+                mp[a].push_back(b);
+            }
+            else if(op==2){
+                scanf("%d",&a);
+                if(mp[a].empty()){
+                    puts("EMPTY");
+                }
+                else{
+                    int v=mp[a].back();
+                    mp[a].pop_back();
+                    printf("%d\n",v);
+                }
+            }
+            else{
+                scanf("%d%d",&a,&b);
+                mp[a].splice(mp[a].end(),mp[b]);
+            }
+        }
+        for(int i=1;i<=n;i++){
+            mp[i].clear();
+        }
+    }
+    return 0;
+}
+

@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int mod = 998244353;
+const int maxn = 1e5+5;
+ll qpow(ll a,ll n){
+    ll ret=1;
+    while(n){
+        if(n&1){
+            ret=ret*a;if(ret>=mod)ret%=mod;
+        }
+        a=a*a;if(a>=mod)a%=mod;n>>=1;
+    }return ret;
+}
+
+struct node{
+    ll p,d,dd;
+    int id;
+}a[maxn];
+bool cmp1(node a,node b){
+    return a.d<b.d;
+}
+bool cmp2(node a,node b){
+    return a.id<b.id;
+}
+
+/**********************/
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid  int mid = (l+r)>>1
+double sum[maxn<<2],cur[maxn<<2];
+
+void build(int l,int r,int rt){
+    cur[rt]=1;sum[rt]=0;
+    intmid;
+    if(l==r){
+        return;
+    }
+    build(lson);
+    build(rson);
+}
+
+void push_up(int rt){
+    sum[rt]=sum[rt<<1]+sum[rt<<1|1];
+}
+
+void push_down(int l,int r,int rt){
+    if(cur[rt]>1 || cur[rt]<1){
+        cur[rt<<1]*=cur[rt];
+        cur[rt<<1|1]*=cur[rt];
+        sum[rt<<1]*=cur[rt];
+        sum[rt<<1|1]*=cur[rt];
+        cur[rt]=1;
+    }
+}
+
+double querysum(int L,int R,int l,int r,int rt){
+    double ret=0;
+    if(L<=l && R>=r)return sum[rt];
+    push_down(l,r,rt);
+    intmid;
+    if(L<=mid)ret+=querysum(L,R,lson);
+    if(R>mid) ret+=querysum(L,R,rson);
+    return ret;
+}
+
+void update1(int P,double val,int l,int r,int rt){
+    if(l==r){
+        sum[rt]=val;
+        cur[rt]=1;
+        return;
+    }
+    intmid;
+    if(P<=mid)update1(P,val,lson);
+    else update1(P,val,rson);
+    push_up(rt);
+}
+
+void update2(int L,int R,double val,int l,int r,int rt){
+    intmid;
+    if(L<=l &&R>=r){
+        cur[rt]*=val;
+        sum[rt]*=val;
+        return;
+    }
+    push_down(l,r,rt);
+    if(L<=mid)update2(L,R,val,lson);
+    if(R>mid) update2(L,R,val,rson);
+    push_up(rt);
+}
+
+/**************************/
+
+
+
+int main(){
+    int n;scanf("%d",&n);
+    for(int i=1;i<=n;i++){
+        scanf("%lld %lld",&a[i].p,&a[i].d);a[i].id=i;
+    }sort(a+1,a+1+n,cmp1);
+    int cnt=2;
+    a[1].dd=cnt;
+    for(int i=2;i<=n;i++){
+        if(a[i].d==a[i-1].d){
+            a[i].dd=cnt;
+        } else {
+            cnt++;a[i].dd=cnt;
+        }
+    }sort(a+1,a+1+n,cmp2);
+
+    build(1,n,1);
+    update1(1,1,1,n,1);
+    double ans=0;
+    for(int i=1;i<=n;i++){
+        double sum = querysum(1,a[i].dd-1,1,n,1);
+        double get = sum*1.0*a[i].p/100.0;
+        update1(a[i].dd,get,1,n,1);
+        update2(1,a[i].dd-1,1-1.0*a[i].p/100.0,1,n,1);
+        ans+=get;
+    }
+    cout<<ans;
+
+    return 0;
+}

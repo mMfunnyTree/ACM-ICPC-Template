@@ -1,0 +1,49 @@
+#include <cstdio>
+#include <cstring>
+using namespace std;
+typedef long long ll;
+const double eps = 1e-8;
+const int maxn = 1e6+5;
+
+struct point{
+    int x,y;
+    point(int x=0,int y=0):x(x),y(y){}
+};
+
+int cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+int main(){
+    point a = point(0,0);
+    point b = point(1,0);
+    point c = point(-1,-1);
+    printf("%d\n",cross(a,b,c));
+    int n,m;
+    point p1,p2;
+    point p;
+    point line[5005][2];
+    int ans[5005]={0};
+    while(scanf("%d",&n)&&n){
+        scanf("%d%d%d%d%d",&m,&p1.x,&p1.y,&p2.x,&p2.y);
+        for(int i=0;i<n;i++){
+            scanf("%d%d",&line[i][0].x,&line[i][1].x);
+            line[i][0].y=p1.y;line[i][1].y=p2.y;
+        }
+        line[n][0]=point(p2.x,p1.y);line[n][1]=point(p2.x,p2.y);
+        memset(ans,0,sizeof ans);
+        while(m--){
+            scanf("%d%d",&p.x,&p.y);
+            for(int i=0;i<=n;i++){
+                if(cross(line[i][0],line[i][1],p)<0){
+                    ans[i]++;break;
+                }
+            }
+        }
+        for(int i=0;i<=n;i++){
+            printf("%d: %d\n",i,ans[i]);
+        }
+        printf("\n");
+    }
+    return 0;
+}

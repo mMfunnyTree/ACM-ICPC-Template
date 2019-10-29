@@ -1,0 +1,162 @@
+/**T为0则表示不同位置的相同子串算作一个。T=1则表示不同位置的相同子串算作多个**/
+/**统计出现次数在[A,B]之间的串的个数**/
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 1e6+1000;
+char s[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+
+int sum[maxn<<1],topo[maxn<<1];
+int r[maxn<<1],rr[maxn<<1];
+
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;r[np]=1;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+
+inline void toposort(){
+    for(int a=1;a<=cnt;a++)sum[deep[a]]++;
+    for(int a=1;a<=deep[last];a++)sum[a]+=sum[a-1];
+    for(int a=1;a<=cnt;a++)topo[sum[deep[a]]--]=a;
+}
+
+inline void pre(){
+    cnt=0;
+    root=last=newnode(0);
+}
+int T,K;
+int main(){
+    scanf("%s%d%d",s,&T,&K);
+    pre();
+    memset(son[1],0,sizeof son[1]);
+    int len=strlen(s);
+    for(int a=0;a<len;a++){
+        sam(s[a]-'a');
+    }
+    toposort();
+    for(int i=cnt;i;i--){
+        if(T)r[pa[topo[i]]] += r[topo[i]];
+        else r[topo[i]]=1;
+    }
+    r[root]=0;
+    for(int i=cnt;i;i--){
+        rr[topo[i]]=r[topo[i]];
+        for(int j=0;j<26;j++){
+            rr[topo[i]]+=rr[son[topo[i]][j]];
+        }
+    }
+
+    int now=root;
+    if(K>rr[root])return puts("-1");
+    while(K){
+        K-=r[now];
+        if(K<=0)break;
+        for(int i=0;i<26;i++){
+            if(son[now][i]){
+                if(rr[son[now][i]]>=K){
+                    putchar(i+'a');
+                    now=son[now][i];
+                    break;
+                }
+                else K-=rr[son[now][i]];
+            }
+        }
+    }
+    puts("");
+    return 0;
+}
+
+
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<vector>
+using namespace std;
+const int MAXN = 1e6 + 10;
+inline int read() {
+    char c = getchar(); int x = 0, f = 1;
+    while(c < '0' || c > '9') {if(c == '-') f = -1; c = getchar();}
+    while(c >= '0' && c <= '9') x = x * 10 + c - '0', c = getchar();
+    return x * f;
+}
+char s[MAXN];
+int opt, K, N;
+int fa[MAXN], len[MAXN], ch[MAXN][27], siz[MAXN], right[MAXN], tot = 1, last = 1, root = 1;
+void insert(int x) {
+    int now = ++tot, pre = last; last = now; len[now] = len[pre] + 1;
+    right[now] = 1;
+    for(; pre && !ch[pre][x]; pre = fa[pre]) ch[pre][x] = now;
+    if(!pre) fa[now] = root;
+    else {
+        int q = ch[pre][x];
+        if(len[q] == len[pre] + 1) fa[now] = q;
+        else {
+            int nows = ++tot; len[nows] = len[pre] + 1;
+            memcpy(ch[nows], ch[q], sizeof(ch[q]));
+            fa[nows] = fa[q]; fa[q] = fa[now] = nows;
+            for(; pre && ch[pre][x] == q; pre = fa[pre]) ch[pre][x] = nows;
+        }
+    }
+}
+void Query(int K) {
+    int now = root;
+    if(K > siz[root]) return (void) printf("-1");
+    while(K) {
+        if(now != root) K -= right[now];
+        if(K <= 0) break;
+        for(int i = 0; i <= 25; i++)
+            if(ch[now][i]) {
+                if(siz[ch[now][i]] >= K) {putchar(i + 'a'); now = ch[now][i]; break; }
+                else K -= siz[ch[now][i]];
+            }
+    }
+    puts("");
+}
+void Topsort() {
+    static int A[MAXN], a[MAXN];
+    for(int i = 1; i <= tot; i++) A[len[i]]++;
+    for(int i = 1; i <= N; i++)   A[i] += A[i - 1];
+    for(int i = tot; i >= 1; i--) a[A[len[i]]--] = i;
+    //for(int i = 1; i <= tot; i++) siz[i] = 1;
+
+    if(opt == 1)
+        for(int i = tot; i; i--) right[fa[a[i]]] += right[a[i]];
+    if(opt == 0)
+        for(int i = tot; i; i--) right[a[i]] = 1;
+    for(int i = tot; i; i--) {
+        siz[a[i]] = right[a[i]];
+        for(int j = 0; j <= 25; j++)
+            siz[a[i]] += siz[ch[a[i]][j]];
+    }
+}
+int main() {
+    scanf("%s", s + 1);
+    opt = read(), K = read();
+    N = strlen(s + 1);
+    for(int i = 1; i <= N; i++) insert(s[i] - 'a');
+    Topsort();
+    Query(K);
+    return 0;
+}

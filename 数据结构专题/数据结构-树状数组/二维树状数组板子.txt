@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+ 
+inline char nc(){
+    static char buf[100000],*p1=buf,*p2=buf;
+    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
+}
+template<class T>
+inline void read(T &sum){
+    char ch=nc();sum=0;
+    while(!(ch>='0'&&ch<='9'))ch=nc();
+    while(ch>='0'&&ch<='9')sum=sum*10+ch-48,ch=nc();
+}
+vector<int> a[1000005];
+vector<int> tall[1000005];
+int N,M,T;
+ 
+struct node{
+    int x1,y1,x2,y2,k;
+}q;
+vector<node> op[1000005];
+ 
+struct node2{
+    int x,y,fl;
+    node2(int x=0,int y=0,int fl=0):x(x),y(y),fl(fl){}
+};
+ 
+vector<node2> p[1000005];
+int lowbit(int i) {
+    return i & -i;
+}
+int sum(int i, int j) { //求和
+    int summ = 0;
+    while(i > 0) {
+        int jj = j;
+        while(jj > 0) {
+            summ += a[i][jj];
+            jj -= lowbit(jj);
+        }
+        i -= lowbit(i);
+    }
+    return summ;
+}
+void add(int i, int j, int x) { //区间更新
+    while(i <= N) {
+        int jj = j;
+        while(jj <= M) {
+            a[i][jj] += x;
+            jj += lowbit(jj);
+        }
+        i += lowbit(i);
+    }
+}
+ 
+void upd(int x1, int y1, int x2, int y2) {
+    add(x1, y1, 1);
+    add(x1, y2 + 1, -1);
+    add(x2 + 1, y1, -1);
+    add(x2 + 1, y2 + 1, 1);
+}
+ 
+void addtall(int i, int j, int x) { //区间更新
+    while(i <= N) {
+        int jj = j;
+        while(jj <= M) {
+            tall[i][jj] += x;
+            jj += lowbit(jj);
+        }
+        i += lowbit(i);
+    }
+}
+ 
+void updtall(int x1, int y1, int x2, int y2) {
+    addtall(x1, y1, 1);
+    addtall(x1, y2 + 1, -1);
+    addtall(x2 + 1, y1, -1);
+    addtall(x2 + 1, y2 + 1, 1);
+}
+ 
+int sumtall(int i, int j) { //求和
+    int summ = 0;
+    while(i > 0) {
+        int jj = j;
+        while(jj > 0) {
+            summ += tall[i][jj];
+            jj -= lowbit(jj);
+        }
+        i -= lowbit(i);
+    }
+    return summ;
+}
+ 
+int main() {
+    read(N);read(M);read(T);
+    for(int i=1;i<=N;i++){
+        for(int j=0;j<=M;j++){
+            a[i].push_back(0);
+            tall[i].push_back(0);
+        }
+    }
+    int v;
+    for(int i=1;i<=N;i++){
+        for(int j=1;j<=M;j++){
+            read(v);
+            p[v].push_back(node2(i,j,0));
+        }
+    }
+    for(int i=1;i<=T;i++){
+        read(q.x1);read(q.y1);read(q.x2);read(q.y2);read(q.k);
+        updtall(q.x1,q.y1,q.x2,q.y2);
+        op[q.k].push_back(q);
+    }
+    int ans=0;
+    for(int num=1;num<=N*M;num++){
+        for(int i=0;i<p[num].size();i++){
+            if(sum(p[num][i].x,p[num][i].y)){
+                p[num][i].fl=1;ans++;
+            }
+        }
+        for(auto opp:op[num]){
+            upd(opp.x1,opp.y1,opp.x2,opp.y2);
+        }
+        for(int i=0;i<p[num].size();i++){
+            if(p[num][i].fl)continue;
+            if(sum(p[num][i].x,p[num][i].y) != sumtall(p[num][i].x,p[num][i].y)){
+                p[num][i].fl=1;ans++;
+            }
+        }
+    }
+    printf("%d\n",ans);
+    return 0;
+}

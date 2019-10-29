@@ -1,0 +1,92 @@
+//#pragma comment(linker, "/STACK:1024000000,1024000000")
+#include <bits/stdc++.h>
+using namespace std;
+
+#define maxn 100005
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define intmid int mid=(l+r)>>1
+typedef long long ll;
+
+struct seg
+{
+    int v;
+    double l,r,h;
+    seg(){}
+    seg(int v,double l,double r,double h):v(v),l(l),r(r),h(h){}
+    friend bool operator < (seg a,seg b)
+    {
+        return a.h<b.h;
+    }
+}s[maxn];
+int n;
+int cnt[maxn<<2];
+double x[maxn];
+double one[maxn<<2],two[maxn<<2];
+
+void push_up(int l,int r,int rt)
+{
+    if(cnt[rt]>=2)
+        two[rt]=one[rt]=x[r+1]-x[l];//覆盖2次以上，直接算长度
+    else if(cnt[rt])
+    {
+        one[rt]=x[r+1]-x[l];//覆盖1次以上，直接算长度
+        if(l==r)two[rt]=0;
+        else
+            two[rt]=one[rt<<1]+one[rt<<1|1];//计算子区间的1次，加上这一次
+    }
+    else
+    {
+        one[rt]=one[rt<<1]+one[rt<<1|1];
+        two[rt]=two[rt<<1]+two[rt<<1|1];
+    }
+}
+
+void update(int L,int R,int v,int l,int r,int rt)
+{
+    if(L<=l&&r<=R)
+    {
+        cnt[rt]+=v;
+        push_up(l,r,rt);
+        return;
+    }
+    intmid;
+    if(L<=mid)update(L,R,v,lson);
+    if(R>mid)update(L,R,v,rson);
+    push_up(l,r,rt);
+}
+
+int main()
+{
+    int t;scanf("%d",&t);
+    while(t--)
+    {
+        memset(cnt,0,sizeof(cnt));
+        memset(one,0,sizeof(one));
+        memset(two,0,sizeof(two));
+        double x1,y1,x2,y2;
+        scanf("%d",&n);
+        for(int i=1;i<=n;i++)
+        {
+            scanf("%lf%lf%lf%lf",&x1,&y1,&x2,&y2);
+            x[i]=x1;x[i+n]=x2;
+            s[i]=seg(1,x1,x2,y1);
+            s[i+n]=seg(-1,x1,x2,y2);
+        }
+        n<<=1;
+        sort(x+1,x+1+n);
+        sort(s+1,s+1+n);
+        int len=unique(x+1,x+1+n)-(x+1);
+
+        double ans=0;
+        for(int i=1;i<n;i++)//数字代表点改为数字代表边，那么r值-1，即左闭右开
+        {
+            int l=lower_bound(x+1,x+1+len,s[i].l)-x;
+            int r=lower_bound(x+1,x+1+len,s[i].r)-x;
+            update(l,r-1,s[i].v,1,len,1);
+            ans+=two[1]*(s[i+1].h-s[i].h);
+        }
+        printf("%.2f\n",ans);
+    }
+    return 0;
+}

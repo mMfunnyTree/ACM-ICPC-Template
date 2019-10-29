@@ -1,0 +1,18 @@
+bitset<4> bs;
+cout<<bs<<endl;
+
+bitset对于二进制有位运算符，可以通过[]运算符访问元素
+
+count() 求bitset中1的数量
+size() 求bitset的大小
+test(int a) 求下标a是0还是1
+any() 检查是否存在1
+none() 检查是否不存在1
+all() 检查是否全部为1
+
+filp(int a)翻转下标a
+filp()翻转全部
+set()全部置为1
+set(int a,int b=1)将位置a设置为b
+reset(int a)将位置a设为0
+reset()将每一位设置为0

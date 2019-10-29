@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 3e5+10;
+int n,q;
+int cnt,head[maxn];
+int maxdep;
+struct edge{int nxt,to;}e[maxn<<1];
+int siz[maxn],dep[maxn],id[maxn],rk[maxn];
+void adde(int u,int v){
+    e[++cnt].nxt=head[u];
+    e[cnt].to=v;
+    head[u]=cnt;
+}
+void dfs(int u,int pre,int deep){
+    maxdep=max(maxdep,deep);
+    dep[u]=deep;siz[u]=1;id[u]=++cnt;rk[cnt]=u;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==pre)continue;
+        dfs(v,u,deep+1);
+        siz[u]+=siz[v];
+    }
+}
+int T[maxn],lson[maxn<<5],rson[maxn<<5],TOT;
+ll c[maxn<<5];
+int build(int l,int r){
+    int rt=TOT++;
+    c[rt]=0;
+    if(l!=r){
+        int mid=l+r>>1;
+        lson[rt]=build(l,mid);rson[rt]=build(mid+1,r);
+    }return rt;
+}
+int update(int rt,int pos,int val){
+    int nrt=TOT++,tmp=nrt;
+    c[nrt]=c[rt]+val;
+    int l=1,r=maxdep;
+    while(l<r){
+        int mid=l+r>>1;
+        if(pos<=mid){
+            lson[nrt]=TOT++,rson[nrt]=rson[rt];nrt=lson[nrt];rt=lson[rt];r=mid;
+        }else{
+            rson[nrt]=TOT++,lson[nrt]=lson[rt];nrt=rson[nrt];rt=rson[rt];l=mid+1;
+        }c[nrt]=c[rt]+val;
+    }return tmp;
+}
+ll query(int lrt,int rrt,int l,int r,int L,int R){
+    if(L<=l&&R>=r){
+        return c[rrt]-c[lrt];
+    }int mid=l+r>>1;
+    ll ret=0;
+    if(L<=mid)ret+=query(lson[lrt],lson[rrt],l,mid,L,R);
+    if(R>mid) ret+=query(rson[lrt],rson[rrt],mid+1,r,L,R);
+    return ret;
+}
+int main(){
+    scanf("%d%d",&n,&q);
+    int u,v;
+    for(int i=1;i<n;i++){
+        scanf("%d%d",&u,&v);
+        adde(u,v);adde(v,u);
+    }
+    cnt=0;dfs(1,0,1);
+    T[0]=build(1,maxdep);
+    for(int i=1;i<=n;i++){
+        T[i]=update(T[i-1],dep[rk[i]],siz[rk[i]]-1);
+    }
+    while(q--){
+        scanf("%d%d",&u,&v);
+        if(dep[u]==maxdep){puts("0");continue;}
+        ll ans=1ll*(siz[u]-1)*min(v,dep[u]-1);
+        ans+=query(T[id[u]],T[id[u]+siz[u]-1],1,maxdep,dep[u]+1,min(maxdep,dep[u]+v));
+        cout<<ans<<endl;
+    }
+    return 0;
+}

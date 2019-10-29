@@ -1,0 +1,66 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 2e4+10;
+
+int n;
+int rt,sum,f[maxn];
+int head[maxn],ecnt;
+struct edge{int to,nxt,w;}e[maxn<<1];
+void adde(int u,int v,int w){
+    e[++ecnt]={v,head[u],w};head[u]=ecnt;
+}
+int vis[maxn],dis[maxn],pd[5],siz[maxn];
+void getroot(int u,int pre){
+    f[u]=0;siz[u]=1;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==pre||vis[v])continue;
+        getroot(v,u);
+        siz[u]+=siz[v];
+        f[u]=max(f[u],siz[v]);
+    }f[u]=max(f[u],sum-siz[u]);
+    if(f[u]<f[rt])rt=u;
+}
+void getdis(int u,int fa){
+    ++pd[dis[u]];
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(v==fa||vis[v])continue;
+        (dis[v]=dis[u]+e[i].w)%=3;
+        getdis(v,u);
+    }
+}
+int calc(int u,int w){
+    memset(pd,0,sizeof pd);
+    dis[u]=w;
+    getdis(u,0);
+    return 2*pd[1]*pd[2] + pd[0]*pd[0];
+}
+int ans = 0;
+void solve(int u){
+    ans += calc(u,0);
+    vis[u]=1;
+    for(int i=head[u];i;i=e[i].nxt){
+        int v=e[i].to;
+        if(vis[v])continue;
+        ans -= calc(v,e[i].w);
+        rt=0;sum=siz[v];getroot(v,u);solve(rt);
+    }
+}
+int main(){
+    scanf("%d",&n);
+    int u,v,w;
+    for(int i=1;i<n;++i){
+        scanf("%d%d%d",&u,&v,&w);w%=3;
+        adde(u,v,w);adde(v,u,w);
+    }
+    sum=f[0]=n;rt=0;
+    getroot(1,0);
+    solve(rt);
+    int fm = n*n;
+    int gc = __gcd(fm,ans);
+    ans/=gc;fm/=gc;
+    printf("%d/%d",ans,fm);
+    return 0;
+}

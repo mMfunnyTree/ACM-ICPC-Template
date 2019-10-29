@@ -1,0 +1,66 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int maxn = 4e4+10;
+int a[maxn];
+int b[maxn];
+int c[maxn];
+
+void simple(){
+    double bg=clock();
+
+    for(int i=1;i<=1e4;i++){
+        for(int j=1;j<i;j++){
+            a[i]=a[i]+a[j]+rand();
+        }
+    }
+    for(int i=1e4+1;i<=2e4;i++){
+        for(int j=1e4+1;j<i;j++){
+            a[i]=a[i]+a[j]+rand();
+        }
+    }
+    for(int i=2e4+1;i<=3e4;i++){
+        for(int j=2e4+1;j<i;j++){
+            a[i]=a[i]+a[j]+rand();
+        }
+    }
+    for(int i=3e4+1;i<=4e4;i++){
+        for(int j=3e4+1;j<i;j++){
+            a[i]=a[i]+a[j]+rand();
+        }
+    }
+
+    double ed=clock();
+    cout<<(ed-bg)<<endl;
+}
+
+void ok(int l,int r){
+    for(int i=l;i<=r;i++){
+        for(int j=l;j<i;j++){
+            a[i]=a[i]+a[j]+rand();
+            //if(i%10000==0)cout<<i<<endl;
+        }
+    }
+}
+
+int main(){
+    srand(time(NULL));
+    for(int i=1;i<maxn;i++)a[i]=rand();
+    simple();
+    //cout<<"qwqqwqwqwqw"<<endl;
+    double bg=clock();
+    thread aa(ok,1,1e4);
+    thread bb(ok,1e4+1,2e4);
+    thread cc(ok,2e4+1,3e4);
+    thread dd(ok,3e4+1,4e4);
+    aa.join();
+    bb.join();
+    cc.join();
+    dd.join();
+
+    double ed=clock();
+    cout<<(ed-bg)<<endl;
+    cout<<*max_element(a+1,a+maxn);
+
+    return 0;
+}

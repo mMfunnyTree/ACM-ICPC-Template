@@ -1,0 +1,66 @@
+动态规划思想
+
+对于任意字符串，如果头尾字符相同，那么字符串的最长子序列等于去掉首尾的字符串的最长子序列加上首尾；如果首尾字符不同，则最长子序列等于去掉头的字符串的最长子序列和去掉尾的字符串的最长子序列的较大者。
+
+因此动态规划的状态转移方程为：
+
+设字符串为str，长度为n，p[i][j]表示第i到第j个字符间的子序列的个数（i<=j），则：
+
+状态初始条件：dp[i][i]=1 （i=0：n-1）
+
+状态转移方程：dp[i][j]=dp[i+1][j-1] + 2  if（str[i]==str[j]）
+
+                   dp[i][j]=max(dp[i+1][j],dp[i][j-1])  if （str[i]!=str[j]）
+
+代码：
+以下代码中的两层循环变量i,j的顺序可以改变，但必须满足i<=j的条件。
+
+计算dp[i][j]时需要计算dp[i+1][*]或dp[*][j-1]，因此i应该从大到小，即递减；j应该从小到大，即递增。
+
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int longestPalindromeSubSequence1(string str){
+    int n=str.length();
+    vector<vector<int> > dp(n,vector<int>(n));
+
+    for(int j=0;j<n;j++){
+        dp[j][j]=1;
+        for(int i=j-1;i>=0;i--){
+            if(str[i]==str[j])
+                dp[i][j]=dp[i+1][j-1]+2;
+            else
+                dp[i][j]=max(dp[i+1][j],dp[i][j-1]);
+        }
+    }
+    return dp[0][n-1];
+}
+
+int longestPalindromeSubSequence2(string str){
+    int n=str.length();
+    vector<vector<int> > dp(n,vector<int>(n));
+
+    for(int i=n-1;i>=0;i--){
+        dp[i][i]=1;
+        for(int j=i+1;j<n;j++){
+            if(str[i]==str[j])
+                dp[i][j]=dp[i+1][j-1]+2;
+            else
+                dp[i][j]=max(dp[i+1][j],dp[i][j-1]);
+        }
+    }
+    return dp[0][n-1];
+}
+
+int main()
+{
+    string s;
+    int length;
+    while(cin>>s){
+        length=longestPalindromeSubSequence2(s);
+    }
+    return 0;
+}

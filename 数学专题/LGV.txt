@@ -1,0 +1,44 @@
+/**
+先备知识点：LGV算法
+从{a1,a2,a3,...an}到{b1,b2,b3,...bn}的方案数
+
+起点(n,0)和(n-1,-1), 终点(0,m)和(-1,m-1)的严格不相交路径
+C(n+m,n) * C(n+m,n) - C(n+m,m-1) * C(n+m,n-1)
+**/
+
+/**
+起点{a1,a2} = {(n,0),(n-1,-1)}
+终点{b1,b2} = {(0,m),(-1,m-1)}
+从(n,0)到(0,m)有(n+m)步，向下走n步，有C(n+m,n)种方法
+从(n,0)到(-1,m-1)有(n+m)步，向右走(m-1)步，有C(n+m,m-1)种方法
+从(n-1,-1)到(0,m)有(n+m)步，向下走(n-1)步，有C(n+m,n-1)种方法
+从(n-1,-1)到(-1,m-1)有(n+m)步，向下走n步，有C(n+m,n)种方法
+所以答案是
+
+
+        |(a1,b1) (a1,b2)|
+ans =   |               | = C(n+m,n) * C(n+m,n) - C(n+m,m-1) * C(n+m,n-1)
+        |(a2,b1) (a2,b2)|
+**/
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int mod = 1e9+7;
+
+ll dp[2005][2005];
+int main(){
+    for(int i=0;i<=2004;i++){
+        dp[i][0]=dp[0][i]=1;
+    }
+    for(int i=1;i<=2000;i++){
+        for(int j=1;j<=2000;j++){
+            dp[i][j]=(dp[i-1][j]+dp[i][j-1])%mod;
+        }
+    }
+    int n,m;
+    while(scanf("%d%d",&n,&m)!=EOF){
+        printf("%lld\n",(dp[m][n]*dp[m][n]%mod - dp[n+1][m-1]*dp[m+1][n-1]%mod + mod)%mod);
+    }
+    return 0;
+}

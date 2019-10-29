@@ -1,0 +1,72 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+using namespace std;
+const double eps = 1e-8;
+
+struct point{
+    double x,y;
+    point(double x=0,double y=0):x(x),y(y){}
+};
+
+int n;
+point p[105][2];
+
+int sig(double x){
+    return (x>eps) - (x<-eps);
+}
+
+double cross(point a,point b,point c){
+    return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+int iscross(point p1,point p2,point p3,point p4){
+	int d1=sig(cross(p1,p2,p3));
+	int d2=sig(cross(p1,p2,p4));
+	if((d1^d2)==-2)return 1;
+	if(d1==0||d2==0)return 2;
+	return 0;
+}
+/**
+»¹¿ÉÒÔ£º
+bool iscross(point p1,point p2,point p3,point p4){
+	int ret = (cross(p1,p2,p3)*cross(p1,p2,p4)>eps);
+	return !ret;
+}
+bool iscross(point p1,point p2,point p3,point p4){
+	double r1=cross(p1,p2,p3);
+	double r2=cross(p1,p2,p4);
+	if(sig(r1*r2)<=0)return 1;return 0;
+}
+
+**/
+
+bool check(point p1,point p2){
+    if(sig(p1.x-p2.x)==0 && sig(p1.y-p2.y)==0)return 0;
+    for(int i=0;i<n;i++){
+        if(!iscross(p1,p2,p[i][0],p[i][1]))return 0;
+    }return 1;
+}
+
+int main(){
+    int t;scanf("%d",&t);
+    while(t--){
+        int flag=0;
+        scanf("%d",&n);
+        for(int i=0;i<n;i++){
+            scanf("%lf%lf%lf%lf",&p[i][0].x,&p[i][0].y,&p[i][1].x,&p[i][1].y);
+        }
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                if(check(p[i][0],p[j][0])||
+                   check(p[i][0],p[j][1])||
+                   check(p[i][1],p[j][0])||
+                   check(p[i][1],p[j][1]))flag=1;
+            }
+        }
+        printf("%s\n",flag?"Yes!":"No!");
+    }
+    return 0;
+}

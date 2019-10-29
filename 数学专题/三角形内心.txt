@@ -1,0 +1,9 @@
+内心是角平分线的交点,到三边距离相等.
+设:在三角形ABC中,三顶点的坐标为：A(x1,y1),B(x2,y2),C(x3,y3) BC=a,CA=b,AB=c
+内心为M （X,Y）则有aMA+bMB+cMC=0（三个向量） 
+MA=（X1-X,Y1-Y） 
+MB=(X2-X,Y2-Y) 
+MC=(X3-X,Y3-Y) 
+则：a(X1-X)+b(X2-X)+c(X3-X)=0,a(Y1-Y)+b(Y2-Y)+c(Y3-Y)=0 
+∴X=(aX1+bX2+cX3)/(a+b+c),Y=(aY1+bY2+cY3)/(a+b+c) 
+∴M((aX1+bX2+cX3)/(a+b+c),(aY1+bY2+cY3)/(a+b+c))

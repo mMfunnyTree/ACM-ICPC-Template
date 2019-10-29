@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int maxn=10050;
+const double eps=1e-8;
+const double pi = acos(-1);
+
+struct point{
+	double x,y;
+	int id;
+	point(double x0=0,double y0=0,int id0=0){
+		x=x0;y=y0;id=id0;
+	}
+};
+typedef point vctor;
+vctor operator + (vctor a,vctor b){
+	return vctor(a.x+b.x,a.y+b.y);
+}
+vctor operator - (vctor a,vctor b){
+	return vctor(a.x-b.x,a.y-b.y);
+}
+vctor operator * (vctor a,double k){
+	return vctor(a.x*k,a.y*k);
+}
+vctor operator / (vctor a,double k){
+	return vctor(a.x/k,a.y/k);
+}
+bool operator == (point a,point b){
+	return a.x==b.x&&a.y==b.y;
+}
+
+point p[maxn],res[maxn],d[maxn],tmp[maxn],q;
+int cnt,n,m,r;
+
+int sig(double x){
+	return fabs(x)<eps?0:(x>0)?1:-1;
+}
+
+double dot(point a,point b,point c){
+	return (b.x-a.x)*(c.x-a.x)+(b.y-a.y)*(c.y-a.y);
+}
+
+double cross(point a,point b,point c){
+	return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+}
+
+double dist(point a,point b){
+	return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+}
+
+double angle(point a,point b,point c){
+	return acos(dot(a,b,c)/(dist(a,b)*(dist(a,c))));
+}
+
+int cmp2(point a,point b){
+	return a.y<b.y||a.y==b.y&&a.x<b.x;
+}
+int convex(int n,point p[]){
+	 int now=1;
+	 for(int i=1;i<=n;i++){
+	 	while(now>2&&sig(cross(res[now-2],p[i],res[now-1]))>0)now--;
+	 	res[now++]=p[i];
+	 }
+	 int k=now;
+	 for(int i=n-1;i>=1;i--){
+	 	while(now>k&&sig(cross(res[now-2],p[i],res[now-1]))>0)now--;
+	 	res[now++]=p[i];
+	 }
+	 if(n>1)now--;
+	 return now-1;
+}
+
+int main(){
+	cin>>n;
+	for(int i=1;i<=n;i++){
+        p[i].id=i;
+        cin>>p[i].x>>p[i].y;
+    }
+	if(n==2)
+        return cout<<0.5<<"\n"<<0.5<<endl,0;
+	sort(p+1,p+1+n,cmp2);
+	int howmany=convex(n,p);
+	double ans[200]={0};
+	for(int i=1;i<=howmany;i++){
+        int j=i+1,k=i-1;
+        if(j>howmany)j=1;
+        if(k==0)k=howmany;
+        ans[res[i].id] = max(angle( res[i],res[j],res[k] )-pi,pi - angle( res[i],res[j],res[k] ));
+    }
+    double all =2*pi;
+    for(int i=1;i<=n;i++){
+        printf("%.8f\n",ans[i]/all);
+    }
+	return 0;
+}

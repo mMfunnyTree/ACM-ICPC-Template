@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+using namespace std;
+int t;
+int n,m,flag;
+#define maxn 10005
+vector<int> g[maxn];
+int c[maxn];
+int ans[maxn],tot;
+int dfs(int u)
+{
+    c[u]=-1;
+    for(int i=0;i<g[u].size();i++)
+    {
+        int v=g[u][i];
+        if(c[v]<0){flag=0;return -1;}
+        else if(!c[v]&&dfs(v)==-1){flag=0;return -1;}
+        if(ans[u]<ans[v]+1000)
+            ans[u]=ans[v]+1000;
+    }
+    c[u]=1;
+    tot+=ans[u];
+    return ans[u];
+}
+int main()
+{
+    scanf("%d",&t);
+    while(t--)
+    {
+        memset(c,0,sizeof(c));
+        int u,v;
+        scanf("%d%d",&n,&m);
+        fill(ans+1,ans+n+1,888);
+        for(int i=0;i<m;i++)
+        {
+            scanf("%d%d",&u,&v);
+            g[u].push_back(v);
+        }
+        tot=0,flag=1;
+        for(int i=1;i<=n;i++)
+        {
+            if(!c[i])
+                ans[i]=dfs(i);
+        }
+        if(flag)
+        {
+            printf("%d\n",tot);
+            for(int i=1;i<=n;i++)
+            {
+                printf("%d%c",ans[i],((i==n)?'\n':' '));
+                g[i].clear();
+            }
+        }
+        else
+        {
+            printf("%d\n",888*n);
+            g[n].clear();
+            while(n--)
+            {
+                printf("888%c",((n==0)?'\n':' '));
+                g[n].clear();
+            }
+        }
+    }
+    return 0;
+}

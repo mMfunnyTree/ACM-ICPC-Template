@@ -1,0 +1,47 @@
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Scanner;
+
+public class Main {
+	static Scanner cin = new Scanner(System.in);
+	public static void main(String[] args) {
+		BigDecimal x1, x2, x3, x, y1, y2, y3, y;
+		int t;
+		t = cin.nextInt();
+		while (t-- > 0) {
+			x1 = cin.nextBigDecimal();
+			y1 = cin.nextBigDecimal();
+			x2 = cin.nextBigDecimal();
+			y2 = cin.nextBigDecimal();
+			x3 = cin.nextBigDecimal();
+			y3 = cin.nextBigDecimal();
+			x =  cin.nextBigDecimal();
+			y =  cin.nextBigDecimal();
+
+			BigDecimal a1, b1, c1, a2, b2, c2, x0, y0, l1, l2;
+
+			BigDecimal two = new BigDecimal("2.0");
+			a1 = (x2.subtract(x1)).multiply(two);
+			b1 = (y2.subtract(y1)).multiply(two);
+			c1 = (x2.multiply(x2)).add(y2.multiply(y2)).subtract(y1.multiply(y1)).subtract(x1.multiply(x1));
+
+			a2 = (x3.subtract(x2)).multiply(two);
+			b2 = (y3.subtract(y2)).multiply(two);
+			c2 = (x3.multiply(x3)).add(y3.multiply(y3)).subtract(y2.multiply(y2)).subtract(x2.multiply(x2));
+
+			x0 = ((c1.multiply(b2)).subtract(c2.multiply(b1))).divide(((a1.multiply(b2)).subtract(a2.multiply(b1))));
+			y0 = ((a1.multiply(c2)).subtract(a2.multiply(c1))).divide(((a1.multiply(b2)).subtract(a2.multiply(b1))));
+
+			l1 = (x.subtract(x0)).multiply(x.subtract(x0)).add((y.subtract(y0)).multiply(y.subtract(y0)));
+			l2 = (x1.subtract(x0)).multiply(x1.subtract(x0)).add((y1.subtract(y0)).multiply(y1.subtract(y0)));
+			
+			int flag = l1.compareTo(l2);
+			if(flag==1)
+			{
+				System.out.println("Accepted");
+			}
+			else
+				System.out.println("Rejected");
+		}
+	}
+}

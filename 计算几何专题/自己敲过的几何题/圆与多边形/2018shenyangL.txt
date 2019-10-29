@@ -1,0 +1,86 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long double db;
+const db eps = 1e-20;
+const db inf = 1e20;
+const db pi = acos(-1);
+int sgn(db x){
+    if(fabs(x)<eps)return 0;
+    return x<0?-1:1;
+}
+struct point{
+    db x,y;
+    point(db x=0,db y=0):x(x),y(y){}
+    db distance(point p){return hypot(x-p.x,y-p.y);}
+    point operator+(const point&b)const{return point(x+b.x,y+b.y);}
+    point operator-(const point&b)const{return point(x-b.x,y-b.y);}
+    db operator^(const point&b)const{return x*b.y-y*b.x;}
+    db len(){return hypot(x,y);}
+    point trunc(db r){
+        db l=len();
+        if(!sgn(l))return *this;r/=l;return point(x*r,y*r);
+    }
+    point rotleft(){return point(-y,x);}
+    point rotright(){return point(y,-x);}
+};
+struct circle{
+    point p;
+    db r;
+    circle(){}
+    circle(point p,db r):p(p),r(r){}
+    int relationcircle(circle v){
+        db d=p.distance(v.p);
+        if(sgn(d-r-v.r)>0)return 5;
+        if(sgn(d-r-v.r)==0)return 4;
+        db l=fabs(r-v.r);
+        if(sgn(d-r-v.r)<0&&sgn(d-l)>0)return 3;
+        if(sgn(d-l)==0)return 2;
+        if(sgn(d-l)<0)return 1;
+    }
+    int pointcrosscircle(circle v,point &p1,point &p2){
+        int rel=relationcircle(v);
+        if(rel==1||rel==5)return 0;
+        db d=p.distance(v.p);
+        db l=(d*d+r*r-v.r*v.r)/(2*d);
+        db h=sqrt(r*r-l*l);
+        point tmp=p+(v.p-p).trunc(l);
+        p1=tmp+((v.p-p).rotleft().trunc(h));
+        p2=tmp+((v.p-p).rotright().trunc(h));
+        if(rel==2||rel==4)return 1;return 2;
+    }
+}o,c[105];
+pair<point,point> vec[105];
+int n;
+db R;
+int ca=1;
+void solve(){
+    int tp=0;
+    cin>>n>>R;
+    o=circle(point(0,0),R);
+    for(int i=1;i<=n;++i){
+        cin>>c[i].p.x>>c[i].p.y>>c[i].r;
+        ++tp;
+        int ret=o.pointcrosscircle(c[i],vec[tp].first,vec[tp].second);
+        if(ret!=2)--tp;
+    }
+    db ans=(tp?0:2*R);
+    vec[0]=vec[tp];
+    for(int i=1;i<=tp;++i){
+        bool isin=0;
+        point pp = vec[i].first;pp.x=-pp.x;pp.y=-pp.y;
+        point qq = vec[i-1].second;qq.x=-qq.x;qq.y=-qq.y;
+        for(int j=1;j<=n&&!isin;++j){
+            if(sgn(c[j].p.distance(pp)-c[j].r)<=0&&sgn(c[j].p.distance(qq)-c[j].r)<=0)isin=1;
+        }
+        if(!isin){ans=2*R;break;}
+        for(int j=1;j<=tp;++j){
+            ans = max(ans , vec[i].first.distance(vec[j].second));
+        }
+    }
+    printf("Case #%d: %.20Lf\n",ca++,ans);
+}
+int main(){
+    int T;cin>>T;
+    while(T--)solve();
+    return 0;
+}

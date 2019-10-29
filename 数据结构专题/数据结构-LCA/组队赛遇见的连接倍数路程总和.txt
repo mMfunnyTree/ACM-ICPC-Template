@@ -1,0 +1,71 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+#define N 200010
+typedef long long ll;
+int fa[N][18];
+int head[N],to[N*2],pre[N*2],dep[N];
+int n,e;
+void addedge(int x,int y)
+{
+    to[e]=y;pre[e]=head[x];head[x]=e++;
+}
+void dfs(int x,int p)
+{
+    dep[x]=dep[p]+1;fa[x][0]=p;
+    for(int i=1;i<18;++i)
+        fa[x][i]=fa[fa[x][i-1]][i-1];
+    int y;
+    for(int i=head[x];i!=-1;i=pre[i])
+    {
+        y=to[i];
+        if(y==p) continue;
+        dfs(y,x);
+    }
+}
+int lca(int x,int y)
+{
+    if(dep[x]<dep[y]) swap(x,y);
+    int d=dep[x]-dep[y];
+    for(int i=0;i<18;++i)
+    {
+        if(d==0) break;
+        if((d>>i)&1) x=fa[x][i];
+    }
+    if(x==y) return x;
+    for(int i=17;i>=0;--i)
+        if(fa[x][i]!=fa[y][i])
+        {
+            x=fa[x][i];y=fa[y][i];
+        }
+    return fa[x][0];
+}
+int get_len(int x,int y)
+{
+    int f=lca(x,y);
+    return dep[x]+dep[y]-2*dep[f]+1;
+}
+int main()
+{
+    while(scanf("%d",&n)!=EOF)
+    {
+        memset(head,-1,sizeof(head));
+        e=0;
+        int x,y;
+        for(int i=1;i<n;++i)//¹¹½¨Ë«Ïò±ß
+        {
+            scanf("%d%d",&x,&y);
+            addedge(x,y);
+            addedge(y,x);
+        }
+        dfs(1,0);
+        ll ans=0;
+        for(int i=1;i<=n;++i)
+            for(int j=i+i;j<=n;j+=i)
+                ans+=get_len(i,j);
+        printf("%I64d\n",ans);
+    }
+    return 0;
+}

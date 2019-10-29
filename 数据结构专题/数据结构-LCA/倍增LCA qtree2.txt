@@ -1,0 +1,88 @@
+// luogu-judger-enable-o2
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int maxn = 1e4+10;
+int n,q;
+
+/*********************LCA*********************/
+int dis[maxn];
+int cnt;
+struct edge{int to,nxt,v;};
+edge e[maxn<<1];
+int tot,head[maxn];
+void adde(int u,int v,int w){
+    e[tot].to=v;
+    e[tot].v=w;
+    e[tot].nxt=head[u];
+    head[u]=tot++;
+}
+int fa[maxn][16];
+int dep[maxn];
+void bfs(int rt){
+    queue<int> q;
+    dep[rt]=0;
+    fa[rt][0]=rt;
+    q.push(rt);
+    while(!q.empty()){
+        int tmp=q.front();q.pop();
+        for(int i=1;i<16;i++)
+            fa[tmp][i]=fa[fa[tmp][i-1]][i-1];
+        for(int i=head[tmp];i!=-1;i=e[i].nxt){
+            int v=e[i].to;
+            if(v==fa[tmp][0])continue;
+            dep[v]=dep[tmp]+1;
+            dis[v]=dis[tmp]+e[i].v;
+            fa[v][0]=tmp;
+            q.push(v);
+        }
+    }
+}
+int query_lca(int u,int v){
+    if(dep[u]>dep[v])swap(u,v);
+    int hu=dep[u],hv=dep[v];
+    int tu=u,tv=v;
+    for(int det=hv-hu,i=0;det;det>>=1,i++)
+        if(det&1)tv=fa[tv][i];
+    if(tu==tv)return tu;
+    for(int i=15;i>=0;i--){
+        if(fa[tu][i]==fa[tv][i])continue;
+        tu=fa[tu][i];tv=fa[tv][i];
+    }return fa[tu][0];
+}
+int query_kth(int u,int k){
+    for(int det=k,i=0;det;det>>=1,i++)if(det&1)u=fa[u][i];return u;
+}
+/*********************LCA*********************/
+
+int main(){
+    int u,v,w;
+    char op[10];
+    int t;cin>>t;
+    while(t--){
+        memset(head,-1,sizeof head);tot=0;
+        scanf("%d",&n);
+        for(int i=1;i<n;i++){
+            scanf("%d%d%d",&u,&v,&w);
+            adde(u,v,w);adde(v,u,w);
+        }bfs(1);
+        while(scanf("%s",op)!=EOF&&op[1]!='O'){
+            if(op[1]=='I'){
+                scanf("%d%d",&u,&v);
+                printf("%d\n",dis[u]+dis[v]-2*dis[query_lca(u,v)]);
+            }
+            else{
+                scanf("%d%d%d",&u,&v,&w);
+                int fa=query_lca(u,v);
+                if(dep[u]-dep[fa]+1>=w){
+                    printf("%d\n",query_kth(u,w-1));
+                }
+                else{
+                    printf("%d\n",query_kth(v,dep[v]-dep[fa]+1-(w-(dep[u]-dep[fa]))));
+                }
+            }
+        }puts("");
+    }
+    return 0;
+}

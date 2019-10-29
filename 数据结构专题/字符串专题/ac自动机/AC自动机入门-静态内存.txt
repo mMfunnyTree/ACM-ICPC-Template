@@ -1,0 +1,125 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+struct node
+{
+    int count;//尾部标记
+    node* fail;//指向其他字符串
+    node* child[26];
+    node()
+    {
+        count=0;
+        fail=NULL;
+        memset(child,0,sizeof(child));
+    }
+};
+
+char s[1000006];
+node arr[500005];
+node* root;
+int k;
+
+void insert(char *s)
+{
+    int len = strlen(s);
+    node*p = root;
+    for(int i=0;i<len;i++)
+    {
+        int m = s[i]-'a';
+        if(p->child[m]==NULL)
+        {
+            p->child[m]= &arr[k++];
+        }
+        p=p->child[m];
+    }
+    p->count++;
+}
+
+void getfail()
+{
+    queue<node*>q;
+    q.push(root);
+    while(!q.empty())
+    {
+        node* p = q.front();
+        q.pop();
+        for(int i=0;i<26;i++)
+        {
+            if(p->child[i]!=NULL)
+            {
+                q.push(p->child[i]);
+                node* t = p->fail;
+                while(t)
+                {
+                    if(t->child[i]!=NULL)
+                    {
+                        p->child[i]->fail = t->child[i];
+                        break;
+                    }
+                    t = t->fail;
+                }
+                if(t==NULL)
+                    p->child[i]->fail = root;
+            }
+        }
+    }
+}
+
+int acsearch(char *s)
+{
+    node*p = root;
+    int len = strlen(s);
+    int ret = 0;
+    for(int i=0;i<len;i++)
+    {
+        int m = s[i]-'a';
+        while(p!=NULL && p->child[m]==NULL)
+            p = p->fail;
+        if(p==NULL)
+        {
+            p=root;continue;
+        }
+        node* t = p->child[m];
+        p = p->child[m];
+        while(t!=NULL && t->count!=-1)
+        {
+            if(t->count)
+            {
+                ret += t->count;
+                t->count = -1;
+            }
+            t = t->fail;
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    int n;cin>>n;
+    while(n--)
+    {
+        root = &arr[0];
+        int m;
+        k=1;
+        cin>>m;
+        for(int i=0;i<m;i++)
+        {
+            scanf("%s",s);
+            insert(s);
+        }
+        getfail();
+        scanf("%s",s);
+        printf("%d\n",acsearch(s));
+        for(int i=0;i<k;i++)
+        {
+            arr[i].count=0;
+            arr[i].fail=NULL;
+            for(int j=0;j<26;j++)
+            {
+                arr[i].child[j]=NULL;
+            }
+        }
+    }
+    return 0;
+}

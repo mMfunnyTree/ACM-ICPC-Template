@@ -1,0 +1,38 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+struct node{
+    ll x,y;
+    int id;
+}p[100005];
+
+int ans[100005];
+
+int main(){
+    int n;cin>>n;
+    for(int i=1;i<=n;i++){
+        scanf("%lld%lld",&p[i].x,&p[i].y);
+        p[i].id=i;
+    }srand(time(NULL));
+    while(1){
+        random_shuffle(p+1,p+1+n);
+        ll dx=0,dy=0;
+        for(int i=1;i<=n;i++){
+            ll v1 = (dx + p[i].x)*(dx + p[i].x) + (dy + p[i].y)*(dy + p[i].y);
+            ll v2 = (dx - p[i].x)*(dx - p[i].x) + (dy - p[i].y)*(dy - p[i].y);
+            if(v1<v2){
+                ans[p[i].id]=1;
+                dx+=p[i].x;
+                dy+=p[i].y;
+            } else {
+                ans[p[i].id]=-1;
+                dx-=p[i].x;
+                dy-=p[i].y;
+            }
+        }
+        if(sqrt(dx*dx+dy*dy)<=1500000)break;
+    }
+    for(int i=1;i<=n;i++)cout<<ans[i]<<" ";
+    return 0;
+}

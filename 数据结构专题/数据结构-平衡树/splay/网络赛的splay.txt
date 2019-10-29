@@ -1,0 +1,174 @@
+//#pragma comment(linker, "/stack:200000000")
+//#pragma GCC optimize("Ofast,no-stack-protector")
+//#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
+//#pragma GCC optimize("unroll-loops")
+#include<bits/stdc++.h>
+#define fi first
+#define se second
+#define mp make_pair
+#define pb push_back
+#define pi acos(-1.0)
+#define ll long long
+#define vi vector<int>
+#define mod 1000000007
+#define ld long double
+#define C 0.5772156649
+#define ls l,m,rt<<1
+#define rs m+1,r,rt<<1|1
+#define pll pair<ll,ll>
+#define pil pair<int,ll>
+#define pli pair<ll,int>
+#define pii pair<int,int>
+#define cd complex<double>
+#define ull unsigned long long
+#define base 1000000000000000000
+#define Max(a,b) ((a)>(b)?(a):(b))
+#define Min(a,b) ((a)<(b)?(a):(b))
+#define fio ios::sync_with_stdio(false);cin.tie(0)
+template<typename T>
+inline T const& MAX(T const &a,T const &b){return a>b?a:b;}
+template<typename T>
+inline T const& MIN(T const &a,T const &b){return a<b?a:b;}
+inline void add(ll &a,ll b){a+=b;if(a>=mod)a-=mod;}
+inline void sub(ll &a,ll b){a-=b;if(a<0)a+=mod;}
+inline ll gcd(ll a,ll b){return b?gcd(b,a%b):a;}
+inline ll qp(ll a,ll b){ll ans=1;while(b){if(b&1)ans=ans*a%mod;a=a*a%mod,b>>=1;}return ans;}
+inline ll qp(ll a,ll b,ll c){ll ans=1;while(b){if(b&1)ans=ans*a%c;a=a*a%c,b>>=1;}return ans;}
+ 
+using namespace std;
+ 
+const double eps=1e-8;
+const ll INF=0x3f3f3f3f3f3f3f3f;
+const int N=10000000+10,maxn=50000+10,inf=0x3f3f3f3f;
+ 
+struct Splay{
+    struct Node{
+        Node* ch[2];
+        int v;
+        int s;
+        int flip;
+        int cmp(int x)const{
+            int d = x - ch[0]->s;
+            if(d==1)return -1;
+            return d<=0 ? 0:1;
+        }
+        void maintain()
+        {
+            s = 1 + ch[0]->s + ch[1]->s;
+        }
+        void pushdown()
+        {
+            if(flip)//类似于线段树的lazy标记
+            {
+                flip=0;
+                swap(ch[0],ch[1]);
+                ch[0]->flip = !(ch[0]->flip);
+                ch[1]->flip = !(ch[1]->flip);
+            }
+        }
+    };
+    Node* null;
+    void Rotate(Node* &o,int d)
+    {
+        Node* k = o->ch[d^1];
+        o->ch[d^1] = k->ch[d];
+        k->ch[d] = o;
+        o->maintain();k->maintain();
+        o = k;
+    }
+    void splay(Node* &o,int k)
+    {
+        o->pushdown();
+        int d = o->cmp(k);
+        if(d==1)k -= o->ch[0]->s + 1;//利用二叉树性质
+        if(d!=-1)
+        {
+            Node* p = o->ch[d];
+            p->pushdown();
+            int d2 = p->cmp(k);
+            int k2 = (d2==0 ? k:k-p->ch[0]->s-1);
+            if(d2!=-1)
+            {
+                splay(p->ch[d2],k2);
+                if(d==d2)Rotate(o,d^1);
+                else Rotate(o->ch[d],d);
+            }
+            Rotate(o,d^1);
+        }
+    }
+    Node* Merge(Node* left,Node* right)
+    {
+        splay(left,left->s);//把排名最大的数splay到根
+        left->ch[1] = right;
+        left->maintain();
+        return left;
+    }
+    void split(Node* o,int k,Node* &left,Node* &right)
+    {
+        splay(o,k);//把排名为k的节点splay到根，右侧子树所有节点排名比k大，左侧小
+        right = o->ch[1];
+        o->ch[1] = null;
+        left = o;
+        left->maintain();
+    }
+    Node *root,*left,*right;
+    void init(int sz)
+    {
+        null=new Node;
+        null->s=0;
+        root=new Node;
+        root->v=1;root->flip=0;
+        root->ch[0]=root->ch[1]=null;
+        root->maintain();
+        Node* p;
+        for(int i=2;i<=sz;i++)
+        {
+            p=new Node;
+            p->v=i;p->s=p->flip=0;
+            p->ch[0]=root,p->ch[1]=null;
+            root=p;
+            root->maintain();
+        }
+    }
+    void gao(int n,int l,int r)
+    {
+        if(l==1)return ;
+        if(r==n)
+        {
+            split(root,l-1,left,right);
+            root=Merge(right,left);
+        }
+        else
+        {
+            Node *mid;
+            split(root,r,left,right);
+            split(left,l-1,left,mid);
+            root=Merge(Merge(mid,left),right);
+        }
+    }
+    void print(Node *o)
+    {
+        o->pushdown();
+        if(o->ch[0]!=null)print(o->ch[0]);
+        printf("%d ",o->v);
+        if(o->ch[1]!=null)print(o->ch[1]);
+    }
+}sp;
+int main()
+{
+    int n,m;
+    scanf("%d%d",&n,&m);
+    sp.init(n);
+    for(int i=0;i<m;i++)
+    {
+        int l,r;
+        scanf("%d%d",&l,&r);
+        sp.gao(n,l,l+r-1);
+    }
+    sp.print(sp.root);
+    puts("");
+    return 0;
+}
+/********************
+ 
+********************/

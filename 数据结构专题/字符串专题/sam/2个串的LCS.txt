@@ -1,0 +1,64 @@
+/**SAM最长公共子串问题**/
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn = 3e5+10;
+char s[maxn],t[maxn];
+int pa[maxn<<1],son[maxn<<1][27];
+int deep[maxn<<1],cnt,root,last;
+inline int newnode(int _deep){
+    deep[++cnt]=_deep;
+    return cnt;
+}
+inline void sam(int alp){
+    int np=newnode(deep[last]+1);
+    int u=last;
+    memset(son[np],0,sizeof son[np]);
+    while(u && !son[u][alp])son[u][alp]=np,u=pa[u];
+    if(!u)pa[np]=root;
+    else{
+        int v=son[u][alp];
+        if(deep[v]==deep[u]+1)pa[np]=v;
+        else{
+            int nv=newnode(deep[u]+1);
+            memcpy(son[nv],son[v],sizeof son[v]);
+            pa[nv]=pa[v],pa[v]=pa[np]=nv;
+            while(u&&son[u][alp]==v)son[u][alp]=nv,u=pa[u];
+        }
+    }
+    last=np;
+}
+inline void pre(){
+    root=last=newnode(0);
+}
+int main(){
+    while(scanf("%s%s",s,t+1)!=EOF){
+        cnt=0;
+        memset(son[1],0,sizeof son[1]);
+        pre();
+        int len=strlen(s);
+        int m=strlen(t+1);
+        int ans=0;
+        for(int a=0;a<len;a++)sam(s[a]-'a');
+        for(int a=1,l=0,p=1;a<=m;a++){
+            int x=t[a]-'a';
+            if(son[p][x])p=son[p][x],l++;
+            else{
+                for(;p&&!son[p][x];p=pa[p]);
+                if(!p)l=0,p=1;
+                else l=deep[p]+1,p=son[p][x];
+            }
+            /**
+            p表示当前在哪个状态，l表示当前状态匹配的最长子串
+            deep[p]表示在p状态下，得到的最长子串的长度
+            **/
+            ans=max(ans,l);
+        }
+        printf("%d\n",ans);
+    }
+    return 0;
+}
+/**
+理解：为什么失配之后要转向par呢，因为在状态p失配
+说明该状态的[min,max]都不满足要求的子串，但是比p中短的后缀仍然可能是满足的
+**/

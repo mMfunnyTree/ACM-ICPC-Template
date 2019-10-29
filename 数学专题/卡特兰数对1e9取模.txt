@@ -1,0 +1,34 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+using namespace std;
+typedef __int64 ll;
+const int mod = 1e9+7;
+const int maxn = 300;
+ll fac[maxn] = {1};
+void init()
+{
+    for(int i = 1; i < maxn; i++)
+        fac[i] = fac[i-1]*i%mod;
+}
+ll qmod(ll x, ll p)
+{
+    ll ans = 1;
+    while(p)
+    {
+        if(p%2) ans = ans*x%mod;
+        x = x*x%mod;
+        p /= 2;
+    }
+    return ans;
+}
+int main()
+{
+    init();
+    ll n;
+    while(scanf("%I64d",&n)!=EOF&&n>=0)
+    {
+        printf("%I64d\n", fac[2*n]*qmod(fac[n+1], mod-2)%mod*qmod(fac[n], mod-2)%mod);
+    }
+    return 0;
+}
